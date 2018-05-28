@@ -14,3 +14,11 @@ The code in this presentation is
 4) All the normal stack commands can be used. For example, to drop
    down into a linear Haskell REPL, use `stack ghci`. Note that the linear
    extension is always on in this branch of GHC.
+
+
+Compiling the presentation
+--------------------------
+
+To compile the presentation, simply use `make`. This will make two versions
+of the presentation: the normal presentations with slide breaks (`\pause` in
+beamer) and a handout version with no slide breaks.
