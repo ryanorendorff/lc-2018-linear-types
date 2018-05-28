@@ -1,0 +1,31 @@
+# Tex related
+*.tex
+*.aux
+*.bbl
+*.ptb
+*.pdf
+*.toc
+*.out
+*.run.xml
+*.blg
+*.bcf
+*.log
+*.nav
+*.snm
+
+# Stack/Haskell
+.stack-work
+*.hi
+*.o
+.hsenv*
+cabal-dev/
+.cabal-sandbox
+cabal.sandbox.config
+TAGS
+/linear-talk.cabal
+
+# Mac
+.DS_Store
+
+# Editor files
+*.swp

@@ -1,0 +1,22 @@
+# This resolver is required for the linear GHC extension
+resolver: ghc-8.2
+compiler: ghc-8.2
+system-ghc: true
+
+packages:
+- .
+- linear-base
+
+# Dependencies mostly for linear-base
+extra-deps:
+- storable-tuple-0.0.3.3
+- text-1.2.3.0
+- base-orphans-0.7
+- storable-record-0.0.4
+- utility-ht-0.0.14
+- semigroups-0.18.4
+
+# Tells stack to use Tweag's GHC docker image.
+docker:
+  enable: true
+  image: tweag/linear-types
