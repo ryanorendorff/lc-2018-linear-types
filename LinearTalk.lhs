@@ -2,14 +2,13 @@
 
 > {-# LANGUAGE ScopedTypeVariables #-}
 > module LinearTalk where
+> import Unsafe.Linear as UL
 >
 
 %endif
 
 \documentclass{beamer}
 
-%include lhs2TeX.fmt
-%include lhs2TeX.sty
 %include polycode.fmt
 %include beamer.fmt
 %include forall.fmt
@@ -37,6 +36,7 @@
 
 \setbeamercolor{frametitle}{fg=white,bg=FoundersRock}
 \setbeamercolor{title separator}{fg=Medalist,bg=white}
+
 
 \usefonttheme[onlymath]{serif}
 
@@ -69,6 +69,36 @@
 }
 
 \begin{document}
+
+%format +. = "+_{\!1} "
+%format -. = "-_{1} "
+%format *. = "*_{1} "
+%format /. = "/_{1} "
+
+%if False
+
+> ------------------------------------------------------------------------
+> --                    Poor man's linear Num class                     --
+> ------------------------------------------------------------------------
+> 
+> (+.) :: Num a => a ->. a ->. a
+> (+.) = UL.toLinear2 (+)
+> 
+> (-.) :: Num a => a ->. a ->. a
+> (-.) = UL.toLinear2 (-)
+> 
+> (*.) :: Num a => a ->. a ->. a
+> (*.) = UL.toLinear2 (*)
+> 
+> (/.) :: Fractional a => a ->. a ->. a
+> (/.) = UL.toLinear2 (/)
+> 
+> infixl 6 +.
+> infixl 6 -.
+> infixl 7 *.
+> infixl 7 /.
+
+%endif
 
 \frame{\titlepage}
 
@@ -160,9 +190,13 @@
 > data Color = Red | Green | Blue deriving (Show, Eq)
 > 
 > f :: Color ->. Color ->. Color
-> f  Red  q  =  q
-> f  p  Green  =  p
-> f  Blue  q  =  q
+> f  Red   q      =  q
+> f  p     Green  =  p
+> f  Blue  q      =  q
+
+> g :: Int ->. Int ->. Int
+> g x y = x +. y
+
 
 \end{frame}
 
