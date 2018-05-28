@@ -11,7 +11,7 @@ The code in this presentation is
 2. Get the linear Haskell from the tweag docker repository:
 
     ```
-    docker pull git pull tweag/linear-types@sha256:cfa3c9e1473bbe95714c523d1b60dde95d7b9a2809f7478bb53bf86d87f1ec58
+    docker pull tweag/linear-types@sha256:6f68b8e02c2cd9e495af7826a13cd7c98e6503f8fab7d93a495d2b1676e9f336
     ```
 
    This code is only tested against this specific version of linear Haskell.

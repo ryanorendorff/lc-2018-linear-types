@@ -19,4 +19,4 @@ extra-deps:
 # Tells stack to use Tweag's GHC docker image.
 docker:
   enable: true
-  image: tweag/linear-types
+  image: tweag/linear-types@sha256:6f68b8e02c2cd9e495af7826a13cd7c98e6503f8fab7d93a495d2b1676e9f336
