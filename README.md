@@ -25,6 +25,12 @@ The code in this presentation is
 Compiling the presentation
 --------------------------
 
+### Prerequisites
+
+- `lhs2tex` installed on the system path. Run `stack install lhs2tex` outside
+  of this directory.
+- A system copy of LaTex with `xelatex`.
+
 To compile the presentation, simply use `make`. This will make two versions
 of the presentation: the normal presentations with slide breaks (`\pause` in
 beamer) and a handout version with no slide breaks.
