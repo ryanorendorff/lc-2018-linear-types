@@ -71,6 +71,9 @@
 \usepackage{unicode-math}
 \usepackage[plain]{fancyref}
 
+\usepackage{verbatim}
+\newenvironment{code}{\footnotesize\verbatim}{\endverbatim\normalsize}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % lhs2tex formatting rules                  %
@@ -484,6 +487,15 @@ We will be focusing on linear types mostly in this talk.
 \begin{frame}
 \frametitle{Rust}
   Daniel explodes here.
+\end{frame}
+
+\begin{frame}
+\frametitle{Rust Exemplar Code}
+
+\begin{code}
+    let v = vec![1., 2., 3.];
+\end{code}
+
 \end{frame}
 
 \section{Conclusion}
