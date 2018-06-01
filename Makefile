@@ -23,4 +23,4 @@ all: LinearTalk.pdf
 	cd $(dir $<) && xelatex -jobname=$(notdir $*)_handout  "\PassOptionsToClass{handout}{beamer}\input{$(notdir $*)}"
 
 clean:
-	rm -f *.tex *.aux *.bbl *.ptb *.pdf *.toc *.out *.run.xml *.blg *.log *.nav *.snm *.bcf
+	rm -f *.tex *.aux *.bbl *.ptb *.pdf *.toc *.out *.run.xml *.blg *.log *.nav *.snm *.bcf *.vrb

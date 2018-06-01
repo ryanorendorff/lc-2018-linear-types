@@ -65,12 +65,28 @@
 
 \usepackage{appendixnumberbeamer}
 
+\usepackage[utf8]{inputenc}
+\usepackage{pmboxdraw}
+
+\usepackage{fancyvrb}
+\usepackage{xcolor}
+
 \usepackage{mathpartir}
 \usepackage{fontspec}
 \usepackage{cmll}
 \usepackage{unicode-math}
+
 \usepackage[plain]{fancyref}
 
+%% Footnotes without an accomanying numerical binding.
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
+\newcommand{\m}[1]{$#1$}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % lhs2tex formatting rules                  %
@@ -124,7 +140,7 @@
 
 \begin{frame}{Opening a file is pretty easy in any programming language}
 
-Let's say we have the following \textsc{api} for accessing files.
+Let's say we have the following \textsc{api} for accessing a resource (files).
 
 > data File
 > data FilePath 
@@ -411,42 +427,96 @@ relate to each other.
 \end{frame}
 
 
-\begin{frame}{Substructural type system relation}
-
-This leads to a convenient diagram describing how the substructural systems
-relate to each other.
-
-\begin{center}
-  \includegraphics[width=\textwidth]{figs/substructural_linear_hi.pdf}
-\end{center}
-
-We will be focusing on linear types mostly in this talk.
-
-\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%               Linear Types by Linear Haskell Section                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Overview of Linear Types through Linear Haskell}
 
+\begin{frame}{The |sum| function can be written linearly}
 
-\begin{frame}{What constitutes a use?}
+Say we want to take the sum of a list. How do we check that we consumed every
+element exactly once?
+\blfootnote{|->.| is represented as \verb|->.| in source code}
 
-\begin{itemize}
+\pause
+
+%format sumL = "\Varid{sum_{L}} "
+%format x_extra = "\textcolor{red}{\Varid{x}} "
+
+> sumL :: [Int] ->. Int
+> sumL []      =  0
+> sumL (x:xs)  =  x +. sumL xs
+
+\end{frame}
+
+
+\begin{frame}[fragile]{When a linear |sum| uses an element twice}
+
+What if we accidentally use an element twice?
+
+< sumL :: [Int] ->. Int
+< sumL []      =  0
+< sumL (x:xs)  =  x +. sumL xs +. x_extra
+
+\pause
+ 
+The type checker will helpfully tell us we violated linearity.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+LinearTalk.lhs:447:10: error:
+    • \textcolor{red}{Couldn't match expected weight '1' of}
+      \textcolor{red}{variable 'x' with actual weight '\m{\omega}'}
+\end{Verbatim}
+
+\end{frame}
+
+
+\begin{frame}[fragile]{When a linear |sum| forgets an element?}
+
+What if we forgot to use the elements of our list?
+
+%format one_kill = "\textcolor{red}{1} "
+
+< sumL :: [Int] ->. Int
+< sumL []      =  0
+< sumL (x:xs)  =  one_kill +. sumL xs 
+
+\pause
+ 
+The type checker will helpfully tell us we violated linearity.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+LinearTalk.lhs:447:10: error:
+    • \textcolor{red}{Couldn't match expected weight '1' of}
+      \textcolor{red}{variable 'x' with actual weight '0'}
+\end{Verbatim}
+
+\end{frame}
+
+
+\begin{frame}{What does it mean to "consume" a variable}
+
+To consume a variable exactly once, we use the following rules
+
+\begin{itemize}[<+->]
   \item An atomic base type: evaluate the value once
   \item A function: Pass in one argument and consume the result exactly
         once.
-        \begin{itemize}
-          \item This is a bit tricky. It means if |(f :: A ->. B) u| is used
-                exactly once, \emph{then} |u| is used exactly once.
+        \begin{itemize}[<+->]
+          \item This is a bit tricky. It means, for |(f :: A ->. B)|, if |f u| 
+                is used exactly once, \emph{then} |u| is used exactly once.
         \end{itemize}
-  \item For any ADT, pattern match and consume all components exactly once. For
-        a pair, this means pattern match and consume each component exactly once.
+  \item For any algebraic data type, pattern match and consume all components
+        exactly once.
+        \begin{itemize}
+          \item For a pair, this means pattern match and consume each
+                component exactly once.
+        \end{itemize}
 \end{itemize}
 
 \end{frame}
 
-
-\begin{frame}{Arrow representation}
-  \verb|->.| is the representation of |->.|.
-\end{frame}
 
 \section{Two examples using Linear Types}
 
@@ -511,10 +581,10 @@ We will be focusing on linear types mostly in this talk.
 > g :: Int ->. Int ->. Int
 > g x y = x +. y
 
-> sumL :: Num a => [a] -> a
-> sumL [] = 0
-> sumL (x:xs) = x +. sumL xs
-
+> -- More general version of sum
+> combineL :: (Int ->. Int ->. Int) -> Int ->.  [Int] ->. Int
+> combineL _ id_elem [] = id_elem
+> combineL op id_elem (x:xs) = x `op` combineL op id_elem xs
 
 \end{frame}
 
