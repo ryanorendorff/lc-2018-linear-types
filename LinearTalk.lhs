@@ -558,7 +558,7 @@ fn append_time_to_file(
     let f = File::open(p)?;
     let mut s = String::new();
     f.read_to_string(&mut s)?;
-    drop(f) // early drop
+    drop(f); // early drop
     s.push_str(&n);
 }
 \end{minted}
@@ -577,7 +577,7 @@ fn append_time_to_file(
     let f = File::open(p)?;
     let mut s = String::new();
     f.read_to_string(&mut s)?;
-    drop(f) // early drop!
+    drop(f); // early drop!
     s.push_str(&n);
 }
 \end{minted}
