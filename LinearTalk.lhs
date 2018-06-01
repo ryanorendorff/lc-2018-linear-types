@@ -490,12 +490,121 @@ We will be focusing on linear types mostly in this talk.
 \end{frame}
 
 \begin{frame}
-\frametitle{Rust Exemplar Code}
-
+\frametitle{Opening a File in Rust}
 \begin{code}
-    let v = vec![1., 2., 3.];
+    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
+    {
+        let f = File::open(p)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        s.push_str(&n);
+        drop(f); // close the file
+    }
+\end{code}
+\end{frame}
+
+\begin{frame}
+\frametitle{What if We Forgot to Close it?}
+\begin{code}
+    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
+    {
+        let f = File::open(p)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        s.push_str(&n);
+        // <- no `drop`
+    }
+\end{code}
+\end{frame}
+
+\begin{frame}
+\frametitle{Cannot Forget! The Compiler Inserts `drop`}
+\begin{code}
+    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
+    {
+        let f = File::open(p)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        s.push_str(&n);
+    } // compiler `drop`s all resources of scope here
+\end{code}
+\end{frame}
+
+\begin{frame}
+\frametitle{`drop` in Rust}
+As part of its ownership system, the Rust compiler tracks all ``owned''
+resources in a program and automatically inserts calls to `drop` when a type
+goes out of scope.
+
+This provides automatic memory safety without GC. It also means that you
+cannot forget to ``finalize'' resources such as files, sockets, etc.
+\end{frame}
+
+\begin{frame}
+\frametitle{What if We Close or `move` the File Early?}
+\begin{code}
+    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
+    {
+        let f = File::open(p)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        drop(f) // early drop
+        s.push_str(&n);
+    }
 \end{code}
 
+Here we accidentally close the file too early.
+\end{frame}
+
+\begin{frame}
+\frametitle{What if We Close or `move` the File Early?}
+\begin{code}
+    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
+    {
+        let f = File::open(p)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        drop(f) // early drop!
+        s.push_str(&n);
+    }
+\end{code}
+
+No worries -- we will get a Rust compile time error. An owned file cannot be
+used again after being used once (here, `drop`ped).
+\end{frame}
+
+\begin{frame}
+\frametitle{What if We Close or `move` the File Early?}
+\begin{code}
+    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
+    {
+        let f = File::open(p)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        send_file_to_other_function(f); // whoops!
+        s.push_str(&n);
+    }
+\end{code}
+
+Here we `move` the file to another function for processing but still try to
+append to it.
+\end{frame}
+
+\begin{frame}
+\frametitle{What if We Close or `move` the File Early?}
+\begin{code}
+    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
+    {
+        let f = File::open(p)?;
+        let mut s = String::new();
+        f.read_to_string(&mut s)?;
+        send_file_to_other_function(f); // whoops!
+        s.push_str(&n);
+    }
+\end{code}
+
+Again, we will get a Rust compile time error. An owned file cannot be used
+again after being used once (here, `move`d to another function).
 \end{frame}
 
 \section{Conclusion}
