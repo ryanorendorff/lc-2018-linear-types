@@ -518,6 +518,14 @@ To consume a variable exactly once, we use the following rules
 \end{frame}
 
 
+\begin{frame}{Gotchas with the function arrow}
+
+> f :: s ->. t
+> g :: s -> t
+> g x = f x
+
+\end{frame}
+
 \section{Two examples using Linear Types}
 
 \begin{frame}
@@ -573,13 +581,11 @@ To consume a variable exactly once, we use the following rules
 
 > data Color = Red | Green | Blue deriving (Show, Eq)
 > 
-> f :: Color ->. Color ->. Color
-> f  Red   q      =  q
-> f  p     Green  =  p
-> f  Blue  q      =  q
+> colorf :: Color ->. Color ->. Color
+> colorf  Red   q      =  q
+> colorf  p     Green  =  p
+> colorf  Blue  q      =  q
 
-> g :: Int ->. Int ->. Int
-> g x y = x +. y
 
 > -- More general version of sum
 > combineL :: (Int ->. Int ->. Int) -> Int ->.  [Int] ->. Int
