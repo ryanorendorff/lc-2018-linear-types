@@ -12,6 +12,7 @@
 *.log
 *.nav
 *.snm
+*.vrb
 
 # Stack/Haskell
 .stack-work
