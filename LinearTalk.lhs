@@ -71,9 +71,7 @@
 \usepackage{unicode-math}
 \usepackage[plain]{fancyref}
 
-\usepackage{verbatim}
-\newenvironment{code}{\footnotesize\verbatim}{\endverbatim\normalsize}
-
+\usepackage{minted}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % lhs2tex formatting rules                  %
@@ -489,45 +487,54 @@ We will be focusing on linear types mostly in this talk.
   Daniel explodes here.
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{Opening a File in Rust}
-\begin{code}
-    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
-    {
-        let f = File::open(p)?;
-        let mut s = String::new();
-        f.read_to_string(&mut s)?;
-        s.push_str(&n);
-        drop(f); // close the file
-    }
-\end{code}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    s.push_str(&n);
+    drop(f); // close the file
+}
+\end{minted}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{What if We Forgot to Close it?}
-\begin{code}
-    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
-    {
-        let f = File::open(p)?;
-        let mut s = String::new();
-        f.read_to_string(&mut s)?;
-        s.push_str(&n);
-        // <- no `drop`
-    }
-\end{code}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    s.push_str(&n);
+    // <- no `drop`
+}
+\end{minted}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{Cannot Forget! The Compiler Inserts `drop`}
-\begin{code}
-    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
-    {
-        let f = File::open(p)?;
-        let mut s = String::new();
-        f.read_to_string(&mut s)?;
-        s.push_str(&n);
-    } // compiler `drop`s all resources of scope here
-\end{code}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    s.push_str(&n);
+} // compiler `drop`s all resources of scope here
+\end{minted}
 \end{frame}
 
 \begin{frame}
@@ -540,68 +547,80 @@ This provides automatic memory safety without GC. It also means that you
 cannot forget to ``finalize'' resources such as files, sockets, etc.
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
-\begin{code}
-    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
-    {
-        let f = File::open(p)?;
-        let mut s = String::new();
-        f.read_to_string(&mut s)?;
-        drop(f) // early drop
-        s.push_str(&n);
-    }
-\end{code}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    drop(f) // early drop
+    s.push_str(&n);
+}
+\end{minted}
 
 Here we accidentally close the file too early.
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
-\begin{code}
-    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
-    {
-        let f = File::open(p)?;
-        let mut s = String::new();
-        f.read_to_string(&mut s)?;
-        drop(f) // early drop!
-        s.push_str(&n);
-    }
-\end{code}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    drop(f) // early drop!
+    s.push_str(&n);
+}
+\end{minted}
 
 No worries -- we will get a Rust compile time error. An owned file cannot be
 used again after being used once (here, `drop`ped).
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
-\begin{code}
-    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
-    {
-        let f = File::open(p)?;
-        let mut s = String::new();
-        f.read_to_string(&mut s)?;
-        send_file_to_other_function(f); // whoops!
-        s.push_str(&n);
-    }
-\end{code}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    send_file_to_other_function(f); // whoops!
+    s.push_str(&n);
+}
+\end{minted}
 
 Here we `move` the file to another function for processing but still try to
 append to it.
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
-\begin{code}
-    fn append_time_to_file(p: Path, n: String) -> io::Result<()>
-    {
-        let f = File::open(p)?;
-        let mut s = String::new();
-        f.read_to_string(&mut s)?;
-        send_file_to_other_function(f); // whoops!
-        s.push_str(&n);
-    }
-\end{code}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    send_file_to_other_function(f); // whoops!
+    s.push_str(&n);
+}
+\end{minted}
 
 Again, we will get a Rust compile time error. An owned file cannot be used
 again after being used once (here, `move`d to another function).
