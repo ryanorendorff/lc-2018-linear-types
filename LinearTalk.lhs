@@ -733,30 +733,13 @@ fn append_time_to_file(
 {
     let f = File::open(p)?;
     let mut s = String::new();
-    f.read_to_string(&mut s)?;
     drop(f); // early drop
+    f.read_to_string(&mut s)?;
     s.push_str(&n);
 }
 \end{minted}
 
 Here we accidentally close the file too early.
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{What if We Close or `move` the File Early?}
-\begin{minted}{rust}
-fn append_time_to_file(
-    p: Path,
-    n: String
-) -> io::Result<()>
-{
-    let f = File::open(p)?;
-    let mut s = String::new();
-    f.read_to_string(&mut s)?;
-    drop(f); // early drop!
-    s.push_str(&n);
-}
-\end{minted}
 
 \pause
 
@@ -774,8 +757,8 @@ fn append_time_to_file(
 {
     let f = File::open(p)?;
     let mut s = String::new();
-    f.read_to_string(&mut s)?;
     send_file_to_other_function(f); // whoops!
+    f.read_to_string(&mut s)?;
     s.push_str(&n);
 }
 \end{minted}
@@ -794,13 +777,11 @@ fn append_time_to_file(
 {
     let f = File::open(p)?;
     let mut s = String::new();
-    f.read_to_string(&mut s)?;
     send_file_to_other_function(f); // whoops!
+    f.read_to_string(&mut s)?; // compiler error here.
     s.push_str(&n);
 }
 \end{minted}
-
-\pause
 
 Again, we will get a Rust compile time error. An owned file cannot be used
 again after being used once (here, \mintinline{rust}{move}d to another function).
@@ -808,7 +789,7 @@ again after being used once (here, \mintinline{rust}{move}d to another function)
 
 \begin{frame}
 \frametitle{Rust and Substructural Types}
-Like Linear Haskell, the Rust type system combines linear (or affine) types
+Like Linear Haskell, the Rust type system provides linear (or affine) types
 along with unrestricted types.
 \begin{itemize}
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
@@ -852,6 +833,7 @@ For Rust owned types, \textit{unrestricted} types obey
 \begin{minted}{rust}
 // Custom types are linear/affine by default.
 struct OwnedInt(i32);
+fn take<T>(n: T) { drop(n) }
 
 let n = OwnedInt(1);
 take(n); // `n` is `move`d; ownership is transferred.
@@ -865,22 +847,22 @@ println!("Number: {}", n.0);
 \begin{minted}{rust}
  // We can opt in to unrestricted types by implementing
  // the Copy trait (here, automatically derived).
- #[derive(Copy)]
- struct OwnedInt(i32);
+ #[derive(Copy, Clone)]
+ struct UnrestrictedInt(i32);
 
- let n = OwnedInt(1);
+ let n = UnrestrictedInt(1);
  take(n); // data is bit-copied and sent to `take`.
  println!("Number: {}", n.0);
  // OK! `n` was not `move`d.
 \end{minted}
 \end{frame}
 
-%\begin{frame}
-%\frametitle{Rust Substructural Type Diagram}
-%\begin{center}
-%  \includegraphics[width=\textwidth]{figs/rust_ownership_types.pdf}
-%\end{center}
-%\end{frame}
+\begin{frame}
+\frametitle{Rust Owned Types}
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/rust_ownership_types3.pdf}
+\end{center}
+\end{frame}
 
 \begin{frame}[fragile]
 \frametitle{References in Rust -- Borrow Types}
@@ -895,86 +877,11 @@ language, Rust provides pass-by-reference types termed \textbf{borrow} types.
 Often the lifetime can be elided and figured out by the compiler.
 
 Borrow types are part of the ownership system and must enforce the same
-invariants
-
+invariants. They also have unrestricted and linear/affine variants.
 \end{frame}
 
 \begin{frame}
-\frametitle{References in Rust -- Borrow Types}
-\begin{itemize}
-    \item Just like pass-by-value types, there are \textit{unrestricted} and
-    \textit{linear/affine} variants.
-    \item An owned type may not be mutated or used when any reference exists.
-    \item Any number of immutable (read-only) references may exist at once.
-    \item Only one mutable reference may ever exist and it excludes any
-    immutable references.
-    \item Borrow types may not outlive their owned referent (enforced by
-    \mintinline{rust}{borrowck} via lifetimes).
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Unrestricted Immutable Borrow Types}
-\begin{minted}{rust}
-struct OwnedInt(i32);
-
-let n = OwnedInt(1);
-let r1 = &n;
-let r2 = &n; // We can have unlimited immutable borrows.
-take(n); // compiler error -- `n` moved with live refs.
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Unrestricted Immutable Borrow Types}
-\begin{minted}{rust}
-struct OwnedInt(i32);
-
-let n = OwnedInt(1);
-let r1 = &n;
-let r2 = &n; // We can have unlimited immutable borrows.
-use_ref(r1); // compiler error -- `r1` could outlive `n`.
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Unrestricted Immutable Borrow Types}
-\begin{minted}{rust}
-struct OwnedInt(i32);
-
-let n = OwnedInt(1);
-{
-    let r = &n;
-    take_ref(r1); // OK.
-} // Delimited scope ensures `n` outlives `r`.
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Linear/Affine Mutable Borrow Types}
-\begin{minted}{rust}
-struct OwnedInt(i32);
-
-let mut n = OwnedInt(1); // `n` must be mutable itself.
-let mut_r = &mut n;
-*mut_r.0 = 2;
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Linear/Affine Mutable Borrow Types}
-\begin{minted}{rust}
-struct OwnedInt(i32);
-
-let mut n = OwnedInt(1); // `n` must be mutable itself.
-let mut_r = &mut n;
-take_mut_ref(r1); // mutable ref is moved.
-*mut_r.0 = 2; // compiler error -- use of `move`d value.
-\end{minted}
-\end{frame}
-
-\begin{frame}
-\frametitle{Rust Substructural Type Diagram}
+\frametitle{Rust Substructural Type Diagram: The Whole Story}
 \begin{center}
   \includegraphics[width=\textwidth]{figs/rust_ownership_types2.pdf}
 \end{center}
@@ -997,12 +904,15 @@ Are those restricted types in Rust affine or linear?
 \begin{frame}
 \frametitle{What do Linear/Affine Types Provide in Rust?}
 
-Substructural typing is at the core of Rust's Ownership Type system, providing:
+Substructural typing is at the core of Rust's ownership type system. They
+are, along with \mintinline{rust}{borrowck}, what allow Rust to provide
+powerful static guarantees.
 
 \begin{itemize}
-    \item Statically ensure memory and thread safety without a GC.
+    \item Statically ensure automatic memory and thread safety without a GC.
     \item Statically ensure proper management (finalization) of resources
-    (\textit{e.g.}, sockets, files, medical imaging scanners).
+    (\textit{e.g.}, sockets, files, mutexes).
+    \item Building block for other safe abstractions (session types).
 \end{itemize}
 
 \end{frame}
@@ -1025,6 +935,29 @@ Substructural typing is at the core of Rust's Ownership Type system, providing:
     bypass \mintinline{rust}{move}.
     \item \mintinline{rust}{unsafe} blocks.
 \end{itemize}
+
+\end{frame}
+
+\section{Substructural Types and Medical Imaging}
+
+\begin{frame}
+
+Compile-time guarantees are very attractive for software that controls
+medical imaging scanners:
+
+\begin{itemize}
+    \item Software controls complex and dangerous hardware.
+    \item Critical communication layers.
+    \item State machnies monitoring hardware.
+    \item We must ensure patient and hardware safety.
+\end{itemize}
+
+But, we need to provide certain types of operational flexibility.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Applications in Our Work at Magnetic Insight}
 
 \end{frame}
 
