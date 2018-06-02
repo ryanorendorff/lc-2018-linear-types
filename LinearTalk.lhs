@@ -563,7 +563,8 @@ To consume a variable exactly once, we use the following rules
 
 \begin{frame}
 \frametitle{Rust}
-  Daniel explodes here.
+  Rust is a ``mainstream'' language that ships with a substructural type
+  system.
 \end{frame}
 
 \begin{frame}[fragile]
@@ -617,13 +618,17 @@ fn append_time_to_file(
 \end{frame}
 
 \begin{frame}
-\frametitle{`drop` in Rust}
-As part of its ownership system, the Rust compiler tracks all ``owned''
-resources in a program and automatically inserts calls to `drop` when a type
-goes out of scope.
+\frametitle{`drop` in Rust Ownership Type System}
 
-This provides automatic memory safety without GC. It also means that you
-cannot forget to ``finalize'' resources such as files, sockets, etc.
+The Rust compiler establishes and tracks \textbf{ownership}.
+
+\begin{itemize}
+    \item The compiler automatically inserts calls to `drop` when an owned type
+    goes out of scope.
+    \item This provides automatic memory safety without GC.
+    \item It also means that you cannot forget to ``finalize'' resources such
+    as files, sockets, etc.
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -703,6 +708,192 @@ fn append_time_to_file(
 
 Again, we will get a Rust compile time error. An owned file cannot be used
 again after being used once (here, `move`d to another function).
+\end{frame}
+
+\begin{frame}
+\frametitle{Rust and Substructural Types}
+Like Linear Haskell, the Rust type system combines linear (or affine) types
+along with unrestricted types.
+\begin{itemize}
+    \item Linear Haskell provides flexible opt-in linearity \textit{on the
+    function arrow}.
+    \item Rust's system is a pervasive \textit{ownership} type system that
+    includes \textbf{borrow} types.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Factors Influencing Rust's Implementation}
+Understanding the goals of the Rust language helps to understand Rust's
+substructural type system implementation.
+
+\begin{itemize}
+    \item Enable low-level systems programming.
+    \item Automatic memory management without GC.
+    \item Statically verified memory and thread safety.
+    \item Static guarantee of exclusive mutability.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{`copy` and `move` semantics}
+For Rust owned types, \textit{unrestricted} types obey `copy` semantics and
+the linear/affine types obey `move` semantics.
+
+\begin{itemize}
+    \item Copy types are bit-copied on use and associated with primitive and
+    stack-allocated data.
+    \item non-Copy types are `move`d on use and associated with
+    heap-allocated data or data you want/need to be linear/affine.
+    \item Custom types are `move` by default, you must opt in to unrestricted
+    types.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Linear/Affine types with `move` Semantics}
+\begin{minted}{rust}
+// Custom types are linear/affine by default.
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+take(n); // `n` is `move`d; ownership is transferred.
+println!("Number: {}", n.0);
+// Compiler error -- use of `move`d value!
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unrestricted types with `copy` Semantics}
+\begin{minted}{rust}
+// We can opt in to unrestricted types by implementing
+// the Copy trait (here, automatically derived).
+#[derive(Copy)]
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+take(n); // data is bit-copied and sent to `take`.
+println!("Number: {}", n.0);
+// OK! `n` was not `move`d.
+\end{minted}
+\end{frame}
+
+%\begin{frame}
+%\frametitle{Rust Substructural Type Diagram}
+%\begin{center}
+%  \includegraphics[width=\textwidth]{figs/rust_ownership_types.pdf}
+%\end{center}
+%\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{References in Rust -- Borrow Types}
+Owned types alone can be limiting and inefficient.  As a low-level systems
+language, Rust provides pass-by-reference types termed \textbf{borrow} types.
+
+\begin{minted}{rust}
+&'a T // Immutable borrow to T with lifetime `a`.
+&'a mut T // Mutable borrow to T with lifetime `a`.
+\end{minted}
+
+Often the lifetime can be elided and figured out by the compiler.
+\end{frame}
+
+\begin{frame}
+
+Borrow types are part of the ownership system and must enforce the same
+invariants:
+
+\begin{itemize}
+    \item Just like pass-by-value types, there are \textit{unrestricted} and
+    \textit{linear/affine} variants.
+    \item An owned type may not be mutated or used when any reference exists.
+    \item Any number of immutable (read-only) references may exist at once.
+    \item Only one mutable reference may ever exist and it excludes any
+    immutable references.
+    \item Borrow types may not outlive their owned referent (enforced by
+    `borrowck` via lifetimes).
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unrestricted Immutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+let r1 = &n;
+let r2 = &n; // We can have unlimited immutable borrows.
+take(n); // compiler error -- `n` moved with live refs.
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unrestricted Immutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+let r1 = &n;
+let r2 = &n; // We can have unlimited immutable borrows.
+use_ref(r1); // compiler error -- `r1` could outlive `n`.
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unrestricted Immutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+{
+    let r = &n;
+    take_ref(r1); // OK.
+} // Delimited scope ensures `n` outlives `r`.
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Linear/Affine Mutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let mut n = OwnedInt(1); // `n` must be mutable itself.
+let mut_r = &mut n;
+*mut_r.0 = 2;
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Linear/Affine Mutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let mut n = OwnedInt(1); // `n` must be mutable itself.
+let mut_r = &mut n;
+take_mut_ref(r1); // mutable ref is moved.
+*mut_r.0 = 2; // compiler error -- use of `move`d value.
+\end{minted}
+\end{frame}
+
+\begin{frame}
+\frametitle{Rust Substructural Type Diagram}
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/rust_ownership_types2.pdf}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Affine or Linear?}
+Are those restricted types in Rust affine or linear?
+
+\begin{itemize}
+    \item `move` semantics ensure an owned resource is used \textit{at most
+    once}.
+    \item But a resource is not required to be used \textbf{explicitly}
+    \textit{at least} once.
+    \item However, because of ownership tracking, the Rust compiler manually
+    inserts `drop` (deallocation calls) at compile time.
+\end{itemize}
 \end{frame}
 
 \section{Conclusion}
