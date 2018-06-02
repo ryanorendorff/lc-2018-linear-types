@@ -4,8 +4,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module File (
-    funFunc,
-    firstLine
+    firstLine'
     )
 where
 
@@ -17,8 +16,8 @@ import Data.Text (Text)
 import System.IO as SI
 import System.IO.Resource as SIR
     
-firstLine :: FilePath -> IO Text
-firstLine filepath = run $ do
+firstLine' :: FilePath -> IO Text
+firstLine' filepath = run $ do
     f <- SIR.openFile (filepath) SI.ReadMode
     (line, f1) <- SIR.hGetLine(f)
     SIR.hClose(f1)
@@ -27,6 +26,3 @@ firstLine filepath = run $ do
         -- The builder here is only for using @RebindableSyntax@ in this
         -- monad.
         SIR.Builder {..} = SIR.builder
-
-funFunc :: Int ->. Int
-funFunc x = x

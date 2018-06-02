@@ -3,10 +3,18 @@
 > {-# LANGUAGE GADTs #-}
 > {-# LANGUAGE ScopedTypeVariables #-}
 > {-# LANGUAGE EmptyDataDecls #-}
+> {-# LANGUAGE RebindableSyntax #-}
+> {-# LANGUAGE RecordWildCards #-}
+>
 > module LinearTalk where
 > import qualified Prelude.Linear as PL
-> import Prelude hiding (FilePath)
+> import qualified Prelude as P
+> import Prelude hiding (FilePath, (>>=), (>>), return)
 > import Num
+> import System.IO as SI
+> import System.IO.Resource as SIR
+> import Data.Text (Text)
+
 
 > -- Linear Array interface taken from the paper
 > data MArray a 
@@ -143,17 +151,25 @@
 Let's say we have the following \textsc{api} for accessing a resource (files).
 
 > data File
-> data FilePath 
+> data Path 
 
-> openF    ::  FilePath -> IO File
+\pause
+
+We can open and close files,
+
+> openF    ::  Path -> IO File
 > closeF   ::  File -> IO ()
 
 \pause
+
+we can read and append to files,
 
 > readF    ::  File -> IO String
 > appendF  ::  File -> String -> IO ()
 
 \pause
+
+And we can get the current time as a string.
 
 > now      ::  IO String
 
@@ -175,13 +191,21 @@ Let's say we have the following \textsc{api} for accessing a resource (files).
 Let's write a simple program for adding the current date to the end of the
 file.
 
-> appendTimeToFile :: FilePath -> IO ()
+> appendTimeToFile :: Path -> IO ()
 > appendTimeToFile path = do
 >   f <- openF path 
 >   input_data <- readF f
 >   n <- now
 >   appendF f n
 >   closeF f
+
+%if False
+
+>   where
+>     (>>=) = (P.>>=)
+>     (>>) = (P.>>)
+
+%endif
 
 \end{frame}
 
@@ -190,13 +214,21 @@ file.
 
 What if we made a mistake and closed the file. Does the result still typecheck?
 
-> appendTimeToFile' :: FilePath -> IO ()
+> appendTimeToFile' :: Path -> IO ()
 > appendTimeToFile' path = do
 >   f <- openF path 
 >   input_data <- readF f
 >   n <- now
 >   closeF f     
 >   appendF f n  -- Oops, we closed the file
+
+%if False
+
+>   where
+>     (>>=) = (P.>>=)
+>     (>>) = (P.>>)
+
+%endif
 
 \pause
 
@@ -437,7 +469,7 @@ relate to each other.
 
 Say we want to take the sum of a list. How do we check that we consumed every
 element exactly once?
-\blfootnote{|->.| is represented as \verb|->.| in source code}
+\blfootnote{"|->.|" is represented as "\verb|->.|" in source code}
 
 \pause
 
@@ -520,16 +552,100 @@ To consume a variable exactly once, we use the following rules
 
 \begin{frame}{Gotchas with the function arrow}
 
+The linear arrow says how the function \emph{uses its argument}; it does not
+restrict what is passed to the function.
+
+\pause
+
 > f :: s ->. t
 > g :: s -> t
 > g x = f x
 
+%if False
+
+> f = undefined
+
+%endif
+
+|g| does not specify how its argument is used; it could be aliased.
+
 \end{frame}
+
+\begin{frame}[fragile]{All datatypes are linear by default}
+
+%format (Pair (a) (b)) = "( " a ", " b ") "
+%format fst' = "\Varid{fst}_{\omega} "
+%format fst'' = "\Varid{fst}_{1} "
+
+> data Pair a b where
+>   Pair :: a ->. b ->. Pair a b
+
+> fst' :: Pair a b -> a
+> fst' (Pair a b) = a
+
+\pause
+
+< fst'' :: Pair a b ->. a
+< fst'' (Pair a b) = a
+
+\begin{Verbatim}[commandchars=\\\{\}]
+LinearTalk.lhs:572:16: error:
+    • \textcolor{red}{Couldn't match expected weight ‘1’ of variable ‘b’}
+      \textcolor{red}{with actual weight ‘0’}
+\end{Verbatim}
+
+\pause
+
+Linear datatypes work in a non-linear context; we do not need special data
+constructors for linear versus nonlinear data.
+
+\end{frame}
+
+
+\begin{frame}{Unrestricted data}
+
+You can define a term to have unlimited use by using the following data type.
+
+> data Unrestricted a where
+>   Unrestricted :: a -> Unrestricted a
+
+
+
+This allows you to define functions like so
+
+> snd' :: (Unrestricted a, b) ->. b
+> snd' ((Unrestricted a), b) = b
+
+\end{frame}
+
 
 \section{Two examples using Linear Types}
 
 \begin{frame}
 \frametitle{Examples using Linear Types}
+
+%format SIR.openFile = "\Varid{openF}_L "
+%format SIR.hClose = "\Varid{closeF}_L "
+%format SIR.hGetLine = "\Varid{getLine}_L "
+%format SIR.return = "\Varid{return}_L "
+%format SI.ReadMode = "\Varid{ReadMode} "
+
+> firstLine :: FilePath -> IO Text
+> firstLine filepath = run $ do
+>     f <- SIR.openFile filepath SI.ReadMode
+>     (line, f1) <- SIR.hGetLine(f)
+>     SIR.hClose(f1)
+>     SIR.return line
+
+%if False
+
+>     where
+>         -- The builder here is only for using @RebindableSyntax@ in this
+>         -- monad.
+>         SIR.Builder {..} = SIR.builder
+
+%endif
+
   \begin{itemize}
     \item File IO or array example
     \item Scanners galore!
@@ -589,8 +705,19 @@ To consume a variable exactly once, we use the following rules
 
 > -- More general version of sum
 > combineL :: (Int ->. Int ->. Int) -> Int ->.  [Int] ->. Int
-> combineL _ id_elem [] = id_elem
-> combineL op id_elem (x:xs) = x `op` combineL op id_elem xs
+> combineL _ idElem [] = idElem
+> combineL op idElem (x:xs) = x `op` combineL op idElem xs
+
+%format SIR.RIO = "\Varid{IO}_L 1 "
+
+> getLine :: File ->. SIR.RIO (Unrestricted Char, File)
+
+%if False
+
+> getLine = undefined
+
+%endif
+
 
 \end{frame}
 
