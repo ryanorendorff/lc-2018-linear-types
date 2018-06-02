@@ -86,6 +86,8 @@
 
 \usepackage[plain]{fancyref}
 
+\usepackage{minted}
+
 %% Footnotes without an accomanying numerical binding.
 \newcommand\blfootnote[1]{%
   \begingroup
@@ -162,9 +164,8 @@ We can open and close files,
 
 \pause
 
-we can read and append to files,
+we can append to files,
 
-> readF    ::  File -> IO String
 > appendF  ::  File -> String -> IO ()
 
 \pause
@@ -176,7 +177,6 @@ And we can get the current time as a string.
 %if False
 
 > openF   = undefined
-> readF   = undefined
 > appendF = undefined
 > closeF  = undefined
 > now     = undefined
@@ -194,7 +194,6 @@ file.
 > appendTimeToFile :: Path -> IO ()
 > appendTimeToFile path = do
 >   f <- openF path 
->   input_data <- readF f
 >   n <- now
 >   appendF f n
 >   closeF f
@@ -217,7 +216,6 @@ What if we made a mistake and closed the file. Does the result still typecheck?
 > appendTimeToFile' :: Path -> IO ()
 > appendTimeToFile' path = do
 >   f <- openF path 
->   input_data <- readF f
 >   n <- now
 >   closeF f     
 >   appendF f n  -- Oops, we closed the file
@@ -285,13 +283,7 @@ In most type systems, three structural properties that allow unrestricted
 use of a variable; unrestricted meaning variables can be dropped,
 duplicated, and reordered.
 
-The structural rules are
-
-\begin{itemize}[<+->]
-  \item Exchange: We can use terms in any order while type checking.
-  \item Contraction:  We can duplicate proofs while type checking.
-  \item Weakening: We can throw away unnecessary proofs while type checking.
-\end{itemize}
+The structural rules are exchange, contraction, and weakening.
 
 \end{frame}
 
@@ -610,7 +602,6 @@ You can define a term to have unlimited use by using the following data type.
 >   Unrestricted :: a -> Unrestricted a
 
 
-
 This allows you to define functions like so
 
 > snd' :: (Unrestricted a, b) ->. b
@@ -653,31 +644,388 @@ This allows you to define functions like so
 \end{frame}
 
 
-\section{Other ways of solving the similar problems}
+\section{The competition}
 
 \begin{frame}
   Also called "the competition".
 \end{frame}
 
-\subsection{Idris and Uniqueness/Dependent Types}
 
-\begin{frame}
-\frametitle{Idris}
-  Idris is cool, I have heard.
-\end{frame}
-
-\subsection{Indexed Monads}
-
-\begin{frame}
-\frametitle{Indexed Monads}
-  Very basic dependently type-ish thing! Who got state in my type system?
-\end{frame}
-
-\subsection{Rust}
+\section{Rust}
 
 \begin{frame}
 \frametitle{Rust}
-  Daniel explodes here.
+  Rust is a ``mainstream'' language that ships with a substructural type
+  system.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Opening a File in Rust}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    s.push_str(&n);
+    drop(f); // close the file
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{What if We Forgot to Close it?}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    s.push_str(&n);
+    // <- no `drop`
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Cannot Forget! The Compiler Inserts `drop`}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    s.push_str(&n);
+} // compiler `drop`s all resources of scope here
+\end{minted}
+\end{frame}
+
+\begin{frame}
+\frametitle{`drop` in Rust Ownership Type System}
+
+The Rust compiler establishes and tracks \textbf{ownership}.
+
+\begin{itemize}
+    \item The compiler automatically inserts calls to \mintinline{rust}{drop}
+    when an owned type goes out of scope.
+    \item This provides automatic memory safety without GC.
+    \item It also means that you cannot forget to ``finalize'' resources such
+    as files, sockets, etc.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{What if We Close or `move` the File Early?}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    drop(f); // early drop
+    s.push_str(&n);
+}
+\end{minted}
+
+Here we accidentally close the file too early.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{What if We Close or `move` the File Early?}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    drop(f); // early drop!
+    s.push_str(&n);
+}
+\end{minted}
+
+\pause
+
+No worries -- we will get a Rust compile time error. An owned file cannot be
+used again after being used once (here, \mintinline{rust}{drop}ped).
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{What if We Close or `move` the File Early?}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    send_file_to_other_function(f); // whoops!
+    s.push_str(&n);
+}
+\end{minted}
+
+Here we \mintinline{rust}{move} the file to another function for processing but still try to
+append to it.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{What if We Close or `move` the File Early?}
+\begin{minted}{rust}
+fn append_time_to_file(
+    p: Path,
+    n: String
+) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    send_file_to_other_function(f); // whoops!
+    s.push_str(&n);
+}
+\end{minted}
+
+\pause
+
+Again, we will get a Rust compile time error. An owned file cannot be used
+again after being used once (here, \mintinline{rust}{move}d to another function).
+\end{frame}
+
+\begin{frame}
+\frametitle{Rust and Substructural Types}
+Like Linear Haskell, the Rust type system combines linear (or affine) types
+along with unrestricted types.
+\begin{itemize}
+    \item Linear Haskell provides flexible opt-in linearity \textit{on the
+    function arrow}.
+    \item Rust's system is a pervasive \textit{ownership} type system that
+    includes \textbf{borrow} types.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Factors Influencing Rust's Implementation}
+Understanding the goals of the Rust language helps to understand Rust's
+substructural type system implementation.
+
+\begin{itemize}
+    \item Enable low-level systems programming.
+    \item Automatic memory management without GC.
+    \item Statically verified memory and thread safety.
+    \item Static guarantee of exclusive mutability.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{`copy` and `move` semantics}
+For Rust owned types, \textit{unrestricted} types obey
+\mintinline{rust}{copy} semantics and the linear/affine types obey
+\mintinline{rust}{move} semantics.
+
+\begin{itemize}
+    \item Copy types are bit-copied on use and associated with primitive and
+    stack-allocated data.
+    \item non-Copy types are \mintinline{rust}{move}d on use and associated
+    with heap-allocated data or data you want/need to be linear/affine.
+    \item Custom types are \mintinline{rust}{move} by default, you must opt
+    in to unrestricted types.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Linear/Affine types with `move` Semantics}
+\begin{minted}{rust}
+// Custom types are linear/affine by default.
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+take(n); // `n` is `move`d; ownership is transferred.
+println!("Number: {}", n.0);
+// Compiler error -- use of `move`d value!
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unrestricted types with `copy` Semantics}
+\begin{minted}{rust}
+ // We can opt in to unrestricted types by implementing
+ // the Copy trait (here, automatically derived).
+ #[derive(Copy)]
+ struct OwnedInt(i32);
+
+ let n = OwnedInt(1);
+ take(n); // data is bit-copied and sent to `take`.
+ println!("Number: {}", n.0);
+ // OK! `n` was not `move`d.
+\end{minted}
+\end{frame}
+
+%\begin{frame}
+%\frametitle{Rust Substructural Type Diagram}
+%\begin{center}
+%  \includegraphics[width=\textwidth]{figs/rust_ownership_types.pdf}
+%\end{center}
+%\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{References in Rust -- Borrow Types}
+Owned types alone can be limiting and inefficient.  As a low-level systems
+language, Rust provides pass-by-reference types termed \textbf{borrow} types.
+
+\begin{minted}{rust}
+&'a T // Immutable borrow to T with lifetime `a`.
+&'a mut T // Mutable borrow to T with lifetime `a`.
+\end{minted}
+
+Often the lifetime can be elided and figured out by the compiler.
+
+Borrow types are part of the ownership system and must enforce the same
+invariants
+
+\end{frame}
+
+\begin{frame}
+\frametitle{References in Rust -- Borrow Types}
+\begin{itemize}
+    \item Just like pass-by-value types, there are \textit{unrestricted} and
+    \textit{linear/affine} variants.
+    \item An owned type may not be mutated or used when any reference exists.
+    \item Any number of immutable (read-only) references may exist at once.
+    \item Only one mutable reference may ever exist and it excludes any
+    immutable references.
+    \item Borrow types may not outlive their owned referent (enforced by
+    \mintinline{rust}{borrowck} via lifetimes).
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unrestricted Immutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+let r1 = &n;
+let r2 = &n; // We can have unlimited immutable borrows.
+take(n); // compiler error -- `n` moved with live refs.
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unrestricted Immutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+let r1 = &n;
+let r2 = &n; // We can have unlimited immutable borrows.
+use_ref(r1); // compiler error -- `r1` could outlive `n`.
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unrestricted Immutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let n = OwnedInt(1);
+{
+    let r = &n;
+    take_ref(r1); // OK.
+} // Delimited scope ensures `n` outlives `r`.
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Linear/Affine Mutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let mut n = OwnedInt(1); // `n` must be mutable itself.
+let mut_r = &mut n;
+*mut_r.0 = 2;
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Linear/Affine Mutable Borrow Types}
+\begin{minted}{rust}
+struct OwnedInt(i32);
+
+let mut n = OwnedInt(1); // `n` must be mutable itself.
+let mut_r = &mut n;
+take_mut_ref(r1); // mutable ref is moved.
+*mut_r.0 = 2; // compiler error -- use of `move`d value.
+\end{minted}
+\end{frame}
+
+\begin{frame}
+\frametitle{Rust Substructural Type Diagram}
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/rust_ownership_types2.pdf}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Affine or Linear?}
+Are those restricted types in Rust affine or linear?
+
+\begin{itemize}
+    \item \mintinline{rust}{move} semantics ensure an owned resource is
+    used \textit{at most once}.
+    \item But a resource is not required to be used \textbf{explicitly}
+    \textit{at least} once.
+    \item However, because of ownership tracking, the Rust compiler manually
+    inserts \mintinline{rust}{drop} (deallocation calls) at compile time.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{What do Linear/Affine Types Provide in Rust?}
+
+Substructural typing is at the core of Rust's Ownership Type system, providing:
+
+\begin{itemize}
+    \item Statically ensure memory and thread safety without a GC.
+    \item Statically ensure proper management (finalization) of resources
+    (\textit{e.g.}, sockets, files, medical imaging scanners).
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Tradeoffs with Rust's Ownership Type System}
+\begin{itemize}
+    \item Strictly less flexible (expressive) than say C/C++.
+    \item Some (\textit{e.g.}, self-referential) data structures are not
+    possible.
+    \item Safe code may be less efficient.
+\end{itemize}
+
+\pause
+
+... but Rust provides some escape hatches:
+
+\begin{itemize}
+    \item `Arc` and `Rc` reference counting types for shared ownership that
+    bypass \mintinline{rust}{move}.
+    \item \mintinline{rust}{unsafe} blocks.
+\end{itemize}
+
 \end{frame}
 
 \section{Conclusion}

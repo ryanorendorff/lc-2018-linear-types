@@ -13,6 +13,8 @@
 *.nav
 *.snm
 *.vrb
+_minted*
+*.pyg
 
 # Stack/Haskell
 .stack-work
