@@ -152,7 +152,6 @@ Let's say we have the following \textsc{api} for accessing a resource (files).
 
 \pause
 
-> readF    ::  File -> IO String
 > appendF  ::  File -> String -> IO ()
 
 \pause
@@ -162,7 +161,6 @@ Let's say we have the following \textsc{api} for accessing a resource (files).
 %if False
 
 > openF   = undefined
-> readF   = undefined
 > appendF = undefined
 > closeF  = undefined
 > now     = undefined
@@ -180,7 +178,6 @@ file.
 > appendTimeToFile :: FilePath -> IO ()
 > appendTimeToFile path = do
 >   f <- openF path 
->   input_data <- readF f
 >   n <- now
 >   appendF f n
 >   closeF f
@@ -195,7 +192,6 @@ What if we made a mistake and closed the file. Does the result still typecheck?
 > appendTimeToFile' :: FilePath -> IO ()
 > appendTimeToFile' path = do
 >   f <- openF path 
->   input_data <- readF f
 >   n <- now
 >   closeF f     
 >   appendF f n  -- Oops, we closed the file
@@ -255,13 +251,7 @@ In most type systems, three structural properties that allow unrestricted
 use of a variable; unrestricted meaning variables can be dropped,
 duplicated, and reordered.
 
-The structural rules are
-
-\begin{itemize}[<+->]
-  \item Exchange: We can use terms in any order while type checking.
-  \item Contraction:  We can duplicate proofs while type checking.
-  \item Weakening: We can throw away unnecessary proofs while type checking.
-\end{itemize}
+The structural rules are exchange, contraction, and weakening.
 
 \end{frame}
 
@@ -526,6 +516,12 @@ To consume a variable exactly once, we use the following rules
 > g :: s -> t
 > g x = f x
 
+%if False
+
+> f = undefined
+
+%endif 
+
 \end{frame}
 
 \section{Two examples using Linear Types}
@@ -539,27 +535,14 @@ To consume a variable exactly once, we use the following rules
 \end{frame}
 
 
-\section{Other ways of solving the similar problems}
+\section{The competition}
 
 \begin{frame}
   Also called "the competition".
 \end{frame}
 
-\subsection{Idris and Uniqueness/Dependent Types}
 
-\begin{frame}
-\frametitle{Idris}
-  Idris is cool, I have heard.
-\end{frame}
-
-\subsection{Indexed Monads}
-
-\begin{frame}
-\frametitle{Indexed Monads}
-  Very basic dependently type-ish thing! Who got state in my type system?
-\end{frame}
-
-\subsection{Rust}
+\section{Rust}
 
 \begin{frame}
 \frametitle{Rust}
@@ -771,15 +754,15 @@ println!("Number: {}", n.0);
 \begin{frame}[fragile]
 \frametitle{Unrestricted types with `copy` Semantics}
 \begin{minted}{rust}
-// We can opt in to unrestricted types by implementing
-// the Copy trait (here, automatically derived).
-#[derive(Copy)]
-struct OwnedInt(i32);
+ // We can opt in to unrestricted types by implementing
+ // the Copy trait (here, automatically derived).
+ #[derive(Copy)]
+ struct OwnedInt(i32);
 
-let n = OwnedInt(1);
-take(n); // data is bit-copied and sent to `take`.
-println!("Number: {}", n.0);
-// OK! `n` was not `move`d.
+ let n = OwnedInt(1);
+ take(n); // data is bit-copied and sent to `take`.
+ println!("Number: {}", n.0);
+ // OK! `n` was not `move`d.
 \end{minted}
 \end{frame}
 
