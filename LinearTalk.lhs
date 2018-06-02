@@ -623,8 +623,8 @@ fn append_time_to_file(
 The Rust compiler establishes and tracks \textbf{ownership}.
 
 \begin{itemize}
-    \item The compiler automatically inserts calls to `drop` when an owned type
-    goes out of scope.
+    \item The compiler automatically inserts calls to \mintinline{rust}{drop}
+    when an owned type goes out of scope.
     \item This provides automatic memory safety without GC.
     \item It also means that you cannot forget to ``finalize'' resources such
     as files, sockets, etc.
@@ -666,8 +666,10 @@ fn append_time_to_file(
 }
 \end{minted}
 
+\pause
+
 No worries -- we will get a Rust compile time error. An owned file cannot be
-used again after being used once (here, `drop`ped).
+used again after being used once (here, \mintinline{rust}{drop}ped).
 \end{frame}
 
 \begin{frame}[fragile]
@@ -686,7 +688,7 @@ fn append_time_to_file(
 }
 \end{minted}
 
-Here we `move` the file to another function for processing but still try to
+Here we \mintinline{rust}{move} the file to another function for processing but still try to
 append to it.
 \end{frame}
 
@@ -706,8 +708,10 @@ fn append_time_to_file(
 }
 \end{minted}
 
+\pause
+
 Again, we will get a Rust compile time error. An owned file cannot be used
-again after being used once (here, `move`d to another function).
+again after being used once (here, \mintinline{rust}{move}d to another function).
 \end{frame}
 
 \begin{frame}
@@ -737,16 +741,17 @@ substructural type system implementation.
 
 \begin{frame}
 \frametitle{`copy` and `move` semantics}
-For Rust owned types, \textit{unrestricted} types obey `copy` semantics and
-the linear/affine types obey `move` semantics.
+For Rust owned types, \textit{unrestricted} types obey
+\mintinline{rust}{copy} semantics and the linear/affine types obey
+\mintinline{rust}{move} semantics.
 
 \begin{itemize}
     \item Copy types are bit-copied on use and associated with primitive and
     stack-allocated data.
-    \item non-Copy types are `move`d on use and associated with
-    heap-allocated data or data you want/need to be linear/affine.
-    \item Custom types are `move` by default, you must opt in to unrestricted
-    types.
+    \item non-Copy types are \mintinline{rust}{move}d on use and associated
+    with heap-allocated data or data you want/need to be linear/affine.
+    \item Custom types are \mintinline{rust}{move} by default, you must opt
+    in to unrestricted types.
 \end{itemize}
 \end{frame}
 
@@ -796,13 +801,14 @@ language, Rust provides pass-by-reference types termed \textbf{borrow} types.
 \end{minted}
 
 Often the lifetime can be elided and figured out by the compiler.
+
+Borrow types are part of the ownership system and must enforce the same
+invariants
+
 \end{frame}
 
 \begin{frame}
-
-Borrow types are part of the ownership system and must enforce the same
-invariants:
-
+\frametitle{References in Rust -- Borrow Types}
 \begin{itemize}
     \item Just like pass-by-value types, there are \textit{unrestricted} and
     \textit{linear/affine} variants.
@@ -811,7 +817,7 @@ invariants:
     \item Only one mutable reference may ever exist and it excludes any
     immutable references.
     \item Borrow types may not outlive their owned referent (enforced by
-    `borrowck` via lifetimes).
+    \mintinline{rust}{borrowck} via lifetimes).
 \end{itemize}
 \end{frame}
 
@@ -887,13 +893,47 @@ take_mut_ref(r1); // mutable ref is moved.
 Are those restricted types in Rust affine or linear?
 
 \begin{itemize}
-    \item `move` semantics ensure an owned resource is used \textit{at most
-    once}.
+    \item \mintinline{rust}{move} semantics ensure an owned resource is
+    used \textit{at most once}.
     \item But a resource is not required to be used \textbf{explicitly}
     \textit{at least} once.
     \item However, because of ownership tracking, the Rust compiler manually
-    inserts `drop` (deallocation calls) at compile time.
+    inserts \mintinline{rust}{drop} (deallocation calls) at compile time.
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{What do Linear/Affine Types Provide in Rust?}
+
+Substructural typing is at the core of Rust's Ownership Type system, providing:
+
+\begin{itemize}
+    \item Statically ensure memory and thread safety without a GC.
+    \item Statically ensure proper management (finalization) of resources
+    (\textit{e.g.}, sockets, files, medical imaging scanners).
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Tradeoffs with Rust's Ownership Type System}
+\begin{itemize}
+    \item Strictly less flexible (expressive) than say C/C++.
+    \item Some (\textit{e.g.}, self-referential) data structures are not
+    possible.
+    \item Safe code may be less efficient.
+\end{itemize}
+
+\pause
+
+... but Rust provides some escape hatches:
+
+\begin{itemize}
+    \item `Arc` and `Rc` reference counting types for shared ownership that
+    bypass \mintinline{rust}{move}.
+    \item \mintinline{rust}{unsafe} blocks.
+\end{itemize}
+
 \end{frame}
 
 \section{Conclusion}
