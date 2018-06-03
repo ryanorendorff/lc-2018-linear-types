@@ -121,10 +121,10 @@
 %format ρ = "\rho"
 %format ⅋ = "\parr"
 
-%format +. = "+_{\!1} "
-%format -. = "-_{1} "
-%format *. = "*_{1} "
-%format /. = "/_{1} "
+%format +. = "+_{\!L} "
+%format -. = "-_{\!L} "
+%format *. = "*_{\!L} "
+%format /. = "/_{\!L} "
 
 \author{Ryan~Orendorff, Daniel~Hensley}
 \title{Introduction to Linear Type Systems}
@@ -583,6 +583,7 @@ restrict what is passed to the function.
 
 \end{frame}
 
+
 \begin{frame}[fragile]{All datatypes are linear by default}
 
 In Linear Haskell, all data constructors use linear arrows by default.
@@ -634,8 +635,10 @@ You can define a term to have unlimited use by using the following data type.
 
 This allows you to define functions like so
 
-> snd' :: (Unrestricted a, b) ->. b
-> snd' ((Unrestricted a), b) = b
+%format snd_L
+
+> snd_L :: (Unrestricted a, b) ->. b
+> snd_L ((Unrestricted a), b) = b
 
 \end{frame}
 
@@ -665,7 +668,6 @@ This allows you to define functions like so
 > type File_L = SIR.Handle
 
 %endif
-
 
 Let's say we have the following \textsc{api} for accessing a resource (files).
 
@@ -705,13 +707,57 @@ And we can get the current time as a string.
 \end{frame}
 
 
+\begin{frame}{We will also need a Linear IO Monad}
+
+To glue this all together, we need a linear IO monad.
+
+%format return_L
+%format bind_L = >>= "_{L} "
+
+\pause
+
+|return| is nearly identical, but uses a linear arrow |->.|.
+
+> return_L  :: a ->. SIR.RIO a
+
+\novspacepause
+
+And similarly |bind| is defined using linear arrows. 
+
+> bind_L    :: SIR.RIO a ->. (a ->. SIR.RIO b) ->. SIR.RIO b
+> 
+
+\pause
+
+The linear bind continuation (|k :: a ->. IO b ->. IO b|) forces us to
+use the \emph{value linearly}, instead of relying on the linear arrow for
+linearity.
+
+%if False
+
+> return_L = undefined
+> bind_L = undefined
+
+%endif
+
+\end{frame}
+
+
 \begin{frame}{Appending time to a file part 2}
+
+We can now take a crack at our file example again.
+
+%{
+
+%format do = "\mathrm{\mathbf{do}}_{L} "
 
 > appendTimeToFile_L :: FilePath -> IO ()
 > appendTimeToFile_L path = now P.>>= (\n -> SIR.run $ do
 >     f <- openF_L path 
 >     f_1 <- appendF_L f n
 >     closeF_L f_1)
+
+%}
 
 %if False
 
@@ -722,14 +768,36 @@ And we can get the current time as a string.
 
 %endif
 
-
 \end{frame}
 
 
-\section{The Competition}
+\begin{frame}[fragile]{Appending time to a file part 2}
 
-\begin{frame}
-  Also called "the competition".
+If we forget to close the file, the compiler tells us about this error.
+
+%{
+
+%format do = "\mathrm{\mathbf{do}}_{L} "
+
+%% This format is so that the syntax highlinting in my editor stays nice.
+
+%format `dollar` = $
+
+< appendTimeToFile_L' :: FilePath -> IO ()
+< appendTimeToFile_L' path = now P.>>= (\n -> SIR.run `dollar` do
+<     f <- openF_L path 
+<     f_1 <- appendF_L f n
+<     SIR.return (PL.Unrestricted ()))
+
+%}
+
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`$=3\catcode`^=7\catcode`_=8}]
+LinearTalk.lhs:784:7: error:
+    • \textcolor{red}{Couldn't match expected weight '1' of}
+      \textcolor{red}{variable '$f_1$' with actual weight '0'}
+\end{Verbatim}
+
+
 \end{frame}
 
 
