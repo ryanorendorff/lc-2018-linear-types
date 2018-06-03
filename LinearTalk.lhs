@@ -662,10 +662,7 @@ This allows you to define functions like so
 \begin{frame}[fragile]
 \frametitle{Opening a File in Rust}
 \begin{minted}{rust}
-fn append_time_to_file(
-    p: Path,
-    n: String
-) -> io::Result<()>
+fn append_time(p: Path, n: String) -> io::Result<()>
 {
     let f = File::open(p)?;
     let mut s = String::new();
@@ -679,10 +676,7 @@ fn append_time_to_file(
 \begin{frame}[fragile]
 \frametitle{What if We Forgot to Close it?}
 \begin{minted}{rust}
-fn append_time_to_file(
-    p: Path,
-    n: String
-) -> io::Result<()>
+fn append_time(p: Path, n: String) -> io::Result<()>
 {
     let f = File::open(p)?;
     let mut s = String::new();
@@ -690,22 +684,6 @@ fn append_time_to_file(
     s.push_str(&n);
     // <- no `drop`
 }
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Cannot Forget! The Compiler Inserts `drop`}
-\begin{minted}{rust}
-fn append_time_to_file(
-    p: Path,
-    n: String
-) -> io::Result<()>
-{
-    let f = File::open(p)?;
-    let mut s = String::new();
-    f.read_to_string(&mut s)?;
-    s.push_str(&n);
-} // compiler `drop`s all resources of scope here
 \end{minted}
 \end{frame}
 
@@ -724,17 +702,27 @@ The Rust compiler establishes and tracks \textbf{ownership}.
 \end{frame}
 
 \begin{frame}[fragile]
+\frametitle{Cannot Forget! The Compiler Inserts `drop`}
+\begin{minted}{rust}
+fn append_time(p: Path, n: String) -> io::Result<()>
+{
+    let f = File::open(p)?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    s.push_str(&n);
+} // compiler `drop`s all resources of scope here
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
 \begin{minted}{rust}
-fn append_time_to_file(
-    p: Path,
-    n: String
-) -> io::Result<()>
+fn append_time(p: Path, n: String) -> io::Result<()>
 {
     let f = File::open(p)?;
     let mut s = String::new();
     drop(f); // early drop
-    f.read_to_string(&mut s)?;
+    f.read_to_string(&mut s)?; // invalid second use
     s.push_str(&n);
 }
 \end{minted}
@@ -750,10 +738,7 @@ used again after being used once (here, \mintinline{rust}{drop}ped).
 \begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
 \begin{minted}{rust}
-fn append_time_to_file(
-    p: Path,
-    n: String
-) -> io::Result<()>
+fn append_time(p: Path, n: String) -> io::Result<()>
 {
     let f = File::open(p)?;
     let mut s = String::new();
@@ -770,10 +755,7 @@ append to it.
 \begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
 \begin{minted}{rust}
-fn append_time_to_file(
-    p: Path,
-    n: String
-) -> io::Result<()>
+fn append_time(p: Path, n: String) -> io::Result<()>
 {
     let f = File::open(p)?;
     let mut s = String::new();
@@ -789,7 +771,7 @@ again after being used once (here, \mintinline{rust}{move}d to another function)
 
 \begin{frame}
 \frametitle{Rust and Substructural Types}
-Like Linear Haskell, the Rust type system provides linear (or affine) types
+Like Linear Haskell, the Rust type system includes linear (or affine) types
 along with unrestricted types.
 \begin{itemize}
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
@@ -807,23 +789,27 @@ substructural type system implementation.
 \begin{itemize}
     \item Enable low-level systems programming.
     \item Automatic memory management without GC.
-    \item Statically verified memory and thread safety.
-    \item Static guarantee of exclusive mutability.
+    \item Statically verified memory and thread safety (``fearless
+    concurrency'').
 \end{itemize}
+
+While supporting both aliasing and mutability, a static guarantee of
+mutual exclusion between these two is at the heart of Rust's abilities.
+
 \end{frame}
 
 \begin{frame}
-\frametitle{`copy` and `move` semantics}
+\frametitle{Flavor of Rust's Substructural Types}
 For Rust owned types, \textit{unrestricted} types obey
 \mintinline{rust}{copy} semantics and the linear/affine types obey
 \mintinline{rust}{move} semantics.
 
 \begin{itemize}
+    \item Move types are \mintinline{rust}{move}d on use and associated
+    with heap-allocated data or data you want to be linear/affine.
     \item Copy types are bit-copied on use and associated with primitive and
     stack-allocated data.
-    \item non-Copy types are \mintinline{rust}{move}d on use and associated
-    with heap-allocated data or data you want/need to be linear/affine.
-    \item Custom types are \mintinline{rust}{move} by default, you must opt
+    \item Custom types are \mintinline{rust}{move} by default; you must opt
     in to unrestricted types.
 \end{itemize}
 \end{frame}
@@ -838,8 +824,13 @@ fn take<T>(n: T) { drop(n) }
 let n = OwnedInt(1);
 take(n); // `n` is `move`d; ownership is transferred.
 println!("Number: {}", n.0);
-// Compiler error -- use of `move`d value!
 \end{minted}
+
+\pause
+
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/owned_int_compiler_error.png}
+\end{center}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -892,13 +883,15 @@ invariants. They also have unrestricted and linear/affine variants.
 Are those restricted types in Rust affine or linear?
 
 \begin{itemize}
-    \item \mintinline{rust}{move} semantics ensure an owned resource is
+    \item \mintinline{rust}{move} semantics ensure a resource is
     used \textit{at most once}.
-    \item But a resource is not required to be used \textbf{explicitly}
+    \item But it is not required to be \textbf{explicitly} used
     \textit{at least} once.
     \item However, because of ownership tracking, the Rust compiler manually
     inserts \mintinline{rust}{drop} (deallocation calls) at compile time.
 \end{itemize}
+
+So which is it in the end?
 \end{frame}
 
 \begin{frame}
@@ -909,10 +902,11 @@ are, along with \mintinline{rust}{borrowck}, what allow Rust to provide
 powerful static guarantees.
 
 \begin{itemize}
-    \item Statically ensure automatic memory and thread safety without a GC.
+    \item Automatic memory management without a GC.
+    \item Statically ensure memory and thread safety.
     \item Statically ensure proper management (finalization) of resources
     (\textit{e.g.}, sockets, files, mutexes).
-    \item Building block for other safe abstractions (session types).
+    \item Building block for other abstractions (session types).
 \end{itemize}
 
 \end{frame}
@@ -931,8 +925,8 @@ powerful static guarantees.
 ... but Rust provides some escape hatches:
 
 \begin{itemize}
-    \item `Arc` and `Rc` reference counting types for shared ownership that
-    bypass \mintinline{rust}{move}.
+    \item \mintinline{rust}{Arc} and \mintinline{rust}{Rc} reference
+    counting types for shared ownership that bypass \mintinline{rust}{move}.
     \item \mintinline{rust}{unsafe} blocks.
 \end{itemize}
 
@@ -941,24 +935,57 @@ powerful static guarantees.
 \section{Substructural Types and Medical Imaging}
 
 \begin{frame}
-
+\frametitle{Medical Imaging Software}
 Compile-time guarantees are very attractive for software that controls
 medical imaging scanners:
 
 \begin{itemize}
     \item Software controls complex and dangerous hardware.
     \item Critical communication layers.
-    \item State machnies monitoring hardware.
-    \item We must ensure patient and hardware safety.
+    \item Monitor and respond to hardware sensors.
+    \item We must ensure patient safety and hardware integrity.
 \end{itemize}
-
-But, we need to provide certain types of operational flexibility.
 
 \end{frame}
 
 \begin{frame}
 \frametitle{Applications in Our Work at Magnetic Insight}
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{figs/mpi_pulse_sequences.png}
+\end{center}
 
+We build and operate large imaging scanners.
+
+\begin{itemize}
+    \item Power large magnets and motors with ``pulse sequences'' to
+    take scans and acquire data.
+    \item We then reconstruct images from 1 or more scans per our governing
+    physics.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Important Software-Related Tasks}
+
+\begin{itemize}
+    \item Pulse sequences designed and validated in software (control high
+    currents and power -- handle with care!).
+    \item Communication of data between real-time system directly 
+    controlling the magnets and ``control'' computer.
+    \item Monitoring system hardware (sensors) and taking appropriate
+    actions for invalid conditions.
+    \item Higher level routing of scanner, as a resource, in an
+    asynchronous task management system.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Examples of how We Might Leverage Linear Types}
+We believe many of the safety-critical aspects of our system can benefit from
+substructural typing constructs (as well as more FP).
+
+We'll discuss how \textbf{session types}, based on linear typing, are
+attractive for some of these sensitive tasks.
 \end{frame}
 
 \section{Conclusion}
