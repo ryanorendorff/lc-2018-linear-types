@@ -126,6 +126,8 @@
 %format *. = "*_{\!L} "
 %format /. = "/_{\!L} "
 
+%format f_1
+
 \author{Ryan~Orendorff, Daniel~Hensley}
 \title{Introduction to Linear Type Systems}
 \subtitle{\verb|github.com/ryanorendorff/???????|}
@@ -281,9 +283,27 @@ closed, then we could assure that any open resource must be closed.
   \includegraphics{figs/file_linear_api.pdf}
 \end{center}
 
-Substructural types allow us to accomplish this!
+\end{frame}
+
+
+\begin{frame}{Threading the resource}
+
+Linear types and Linear Haskell can help us guarantee a value is used once.
+
+< appendTimeToFile' :: FilePath -> IO ()
+< appendTimeToFile' path = do
+<     f <- openF path 
+<     n <- now
+<     f_1 <- appendF f n -- Note we 
+<     closeF f_1     
+
+\pause
+
+To get to this compiler-checked form, let's look a bit at how linear and
+substructural types work.
 
 \end{frame}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -468,6 +488,11 @@ relate to each other.
   \includegraphics[width=\textwidth]{figs/substructural.pdf}
 \end{center}
 
+\pause 
+
+Remember, the use once property of linear type systems is what we wanted to
+handle resources in a type safe way.
+
 \end{frame}
 
 
@@ -544,7 +569,7 @@ LinearTalk.lhs:447:10: error:
 To consume a variable exactly once, we use the following rules
 
 \begin{itemize}[<+->]
-  \item An atomic base type: evaluate the value once
+  \item An atomic base type: evaluate the value once.
   \item A function: Pass in one argument and consume the result exactly
         once.
         \begin{itemize}[<+->]
@@ -654,8 +679,6 @@ This allows you to define functions like so
 %format openF_L
 %format appendF_L
 %format closeF_L
-
-%format f_1
 
 %format PL.Unrestricted = "\Varid{Unrestricted} "
 %format P.>>= = >>= 
