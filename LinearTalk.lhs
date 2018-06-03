@@ -780,7 +780,7 @@ The Rust compiler establishes and tracks \textbf{ownership}.
     scope.
     \item This provides automatic memory safety without GC.
     \item It also means that you cannot forget to ``finalize'' these
-    resources (\textit(e.g.), files, sockets, etc.).
+    resources (\textit{e.g}), files, sockets, etc.).
 \end{itemize}
 \end{frame}
 
@@ -814,8 +814,8 @@ Here we accidentally close the file too early.
 
 \pause
 
-No worries -- we will get a Rust compile time error. An owned file cannot be
-used again after being used once (here, \mintinline{rust}{drop}ped).
+No worries -- we will get a Rust compile time error. The file cannot be used
+again after being used once (here, \mintinline{rust}{drop}ped).
 \end{frame}
 
 \begin{frame}[fragile]
@@ -843,20 +843,20 @@ fn append_time(p: Path, n: String) -> io::Result<()>
     let f = File::open(p)?;
     let mut s = String::new();
     send_file_to_other_function(f); // whoops!
-    f.read_to_string(&mut s)?; // compiler error here.
+    f.read_to_string(&mut s)?; // compiler error here
     s.push_str(&n);
 }
 \end{minted}
 
-Again, we get a Rust compile time error. An owned file cannot be used again
-after being used once (here, \mintinline{rust}{move}d to another function).
+Again, we get a Rust compile time error. The file cannot be used again after
+being used once (here, \mintinline{rust}{move}d to another function).
 
 \end{frame}
 
 \begin{frame}
 \frametitle{Rust and Substructural Types}
 Like Linear Haskell, the Rust type system includes restricted types
-(linear/affine*) along with unrestricted types.
+(affine) along with unrestricted types.
 \begin{itemize}
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
     function arrow}.
@@ -884,13 +884,13 @@ mutual exclusion between these two} is at the heart of Rust's abilities.
 
 \begin{frame}
 \frametitle{Flavor of Rust's Substructural Types}
-For Rust owned types, \textit{unrestricted} types obey
-\mintinline{rust}{copy} semantics and the linear/affine types obey
-\mintinline{rust}{move} semantics.
+For Rust owned types, \textit{unrestricted} types obey \textbf{copy semantics}
+and the \textit{affine} types obey \textbf{move semantics} (all
+non-Copy types).
 
 \begin{itemize}
     \item Move types are \mintinline{rust}{move}d on use and associated
-    with heap-allocated data or data you want to be linear/affine.
+    with heap-allocated data or data you want to be affine.
     \item Copy types are bit-copied on use and associated with primitive and
     stack-allocated data.
     \item Custom types are \mintinline{rust}{move} by default; you must opt
@@ -899,9 +899,9 @@ For Rust owned types, \textit{unrestricted} types obey
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Linear/Affine types with `move` Semantics}
+\frametitle{Affine types with `move` Semantics}
 \begin{minted}{rust}
-// Custom types are linear/affine by default.
+// Custom types are affine by default.
 struct OwnedInt(i32);
 fn take<T>(n: T) { drop(n) }
 
@@ -949,8 +949,11 @@ language, Rust provides pass-by-reference types termed \textbf{borrow} types.
 &'a mut T // Mutable borrow to T with lifetime `a`.
 \end{minted}
 
-Borrow types are part of the ownership system and must enforce the same
-invariants. They also have unrestricted and linear/affine variants.
+\begin{itemize}
+    \item Borrow types are part of the ownership system and must enforce the
+    same invariants.
+    \item They also have unrestricted and affine variants.
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -960,25 +963,25 @@ invariants. They also have unrestricted and linear/affine variants.
 \end{center}
 \end{frame}
 
+%\begin{frame}
+%\frametitle{Affine or Linear?}
+%Are those restricted types in Rust affine or linear?
+%
+%\begin{itemize}
+%    \item \mintinline{rust}{move} semantics ensure a resource is
+%    used \textit{at most once}.
+%    \item But it is not required to be \textbf{explicitly} used
+%    \textit{at least} once.
+%    \item However, because of ownership tracking, the Rust compiler manually
+%    inserts \mintinline{rust}{drop} (deallocation calls) at compile time.
+%\end{itemize}
+%
+%So which is it in the end? Do implicit \mintinline{rust}{drop}s constitute
+%linearity?
+%\end{frame}
+
 \begin{frame}
-\frametitle{Affine or Linear?}
-Are those restricted types in Rust affine or linear?
-
-\begin{itemize}
-    \item \mintinline{rust}{move} semantics ensure a resource is
-    used \textit{at most once}.
-    \item But it is not required to be \textbf{explicitly} used
-    \textit{at least} once.
-    \item However, because of ownership tracking, the Rust compiler manually
-    inserts \mintinline{rust}{drop} (deallocation calls) at compile time.
-\end{itemize}
-
-So which is it in the end? Do implicit \mintinline{rust}{drop}s constitute
-linearity?
-\end{frame}
-
-\begin{frame}
-\frametitle{What do Linear/Affine Types Provide in Rust?}
+\frametitle{What do Affine Types Provide in Rust?}
 
 Substructural typing is at the core of Rust's ownership type system. They
 are, along with \mintinline{rust}{borrowck}, what allow Rust to provide
@@ -993,27 +996,27 @@ powerful static guarantees.
 \end{itemize}
 
 \end{frame}
-
-\begin{frame}
-\frametitle{Tradeoffs with Rust's Ownership Type System}
-\begin{itemize}
-    \item Strictly less flexible (expressive) than say C/C++.
-    \item Some (\textit{e.g.}, self-referential) data structures are not
-    possible.
-    \item Safe code may be less efficient.
-\end{itemize}
-
-\pause
-
-... but Rust provides some escape hatches:
-
-\begin{itemize}
-    \item \mintinline{rust}{Arc} and \mintinline{rust}{Rc} reference
-    counting types for shared ownership that bypass \mintinline{rust}{move}.
-    \item \mintinline{rust}{unsafe} blocks.
-\end{itemize}
-
-\end{frame}
+%
+%\begin{frame}
+%\frametitle{Tradeoffs with Rust's Ownership Type System}
+%\begin{itemize}
+%    \item Strictly less flexible (expressive) than say C/C++.
+%    \item Some (\textit{e.g.}, self-referential) data structures are not
+%    possible.
+%    \item Safe code may be less efficient.
+%\end{itemize}
+%
+%\pause
+%
+%... but Rust provides some escape hatches:
+%
+%\begin{itemize}
+%    \item \mintinline{rust}{Arc} and \mintinline{rust}{Rc} reference
+%    counting types for shared ownership that bypass \mintinline{rust}{move}.
+%    \item \mintinline{rust}{unsafe} blocks.
+%\end{itemize}
+%
+%\end{frame}
 
 \section{Substructural Types and Medical Imaging}
 
