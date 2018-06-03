@@ -833,7 +833,7 @@ LinearTalk.lhs:784:7: error:
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Opening a File in Rust}
+\frametitle{Using a File in Rust}
 \begin{minted}{rust}
 fn append_time(p: &Path, n: String) -> io::Result<()>
 {
@@ -991,10 +991,10 @@ non-Copy types).
 \frametitle{Affine types with `move` Semantics}
 \begin{minted}{rust}
 // Custom types are affine by default.
-struct OwnedInt(i32);
-fn take<T>(n: T) { drop(n) }
+struct AffineInt(i32);
+fn take<T>(n: T) { }
 
-let n = OwnedInt(1);
+let n = AffineInt(1);
 take(n); // `n` is `move`d; ownership is transferred.
 println!("Number: {}", n.0);
 \end{minted}
@@ -1002,7 +1002,7 @@ println!("Number: {}", n.0);
 \pause
 
 \begin{center}
-  \includegraphics[width=\textwidth]{figs/owned_int_compiler_error.png}
+  \includegraphics[width=\textwidth]{figs/affine_int_compiler_error.png}
 \end{center}
 \end{frame}
 
