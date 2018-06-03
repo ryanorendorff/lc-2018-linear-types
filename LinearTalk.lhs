@@ -86,6 +86,9 @@
 
 \usepackage[plain]{fancyref}
 
+%% The frownie face
+\usepackage{wasysym}
+
 \usepackage{minted}
 
 %% Footnotes without an accompanying numerical binding.
@@ -305,7 +308,7 @@ terms have to be checked at the same time.
 %   Γ, x:A, y:B ⊢  t:T \text{, then } Γ, y:B, x:A ⊢  t:T
 % \end{equation*}
 
-\novspacepause
+\pause
 
 For example, when type checking the following function
 
@@ -313,7 +316,7 @@ For example, when type checking the following function
 
 We can check that |x| or |y| are |Int|s in either order.
 
-\novspacepause
+\pause
 
 Restricting this property means that we have to type check terms \emph{in
 the opposite order they were introduced} (a \textsc{filo} order).
@@ -329,7 +332,7 @@ The contraction rule lets us use a proof of a variable's type twice.
 %   Γ, x:A, x:A ⊢  t:T \text{, then } Γ, x:A ⊢  t:T
 % \end{equation*}
 
-\novspacepause
+\pause
 
 For example, when type checking the following function
 
@@ -338,7 +341,7 @@ For example, when type checking the following function
 
 We can use the proof that |x :: a| twice.
 
-\novspacepause
+\pause
 
 Restricting this property means we \emph{can't use a term more than once}.
 
@@ -354,7 +357,7 @@ The weakening rule means we can discard unnecessary type proofs.
 %   Γ ⊢  t:T \text{, then } Γ, x:A ⊢  t:T
 % \end{equation*}
 
-\novspacepause
+\pause
 
 For example, when type checking the following function
 
@@ -364,7 +367,7 @@ For example, when type checking the following function
 We do not need to use the fact that |x :: a| while type checking the right
 hand side.
 
-\novspacepause
+\pause
 
 Restricting this property means we \emph{must use a term at least once}.
 
@@ -471,7 +474,7 @@ Say we want to take the sum of a list. How do we check that we consumed every
 element exactly once?
 \blfootnote{"|->.|" is represented as "\verb|->.|" in source code}
 
-\novspacepause
+\pause
 
 %format sumL = "\Varid{sum_{L}} "
 %format x_extra = "\textcolor{red}{\Varid{x}} "
@@ -555,7 +558,7 @@ To consume a variable exactly once, we use the following rules
 The linear arrow says how the function \emph{uses its argument}; it does not
 restrict what is passed to the function.
 
-\novspacepause
+\pause
 
 > f :: s ->. t
 > g :: s -> t
@@ -576,8 +579,8 @@ restrict what is passed to the function.
 In Linear Haskell, all data constructors use linear arrows by default.
 
 %format (Pair (a) (b)) = "( " a ", " b ") "
-%format fst' = "\Varid{fst}_{\omega} "
-%format fst'' = "\Varid{fst}_{1} "
+%format fst' = "\Varid{fst} "
+%format fst'' = "\Varid{fst}_{\frownie} "
 
 > data Pair a b where
 >   Pair :: a ->. b ->. Pair a b
@@ -594,15 +597,16 @@ So we can define the normal |fst| function and have it work as expected.
 But a linear |fst| is not possible, as it requires a linear use of |b|.
 
 < fst'' :: Pair a b ->. a
-< fst'' (Pair a b) = a
+< fst'' (Pair a b) = a -- 'b' has weight 0 instead of 1
 
-\begin{Verbatim}[commandchars=\\\{\}]
-LinearTalk.lhs:572:16: error:
-    • \textcolor{red}{Couldn't match expected weight ‘1’ of variable ‘b’}
-      \textcolor{red}{with actual weight ‘0’}
-\end{Verbatim}
+% \begin{Verbatim}[commandchars=\\\{\}]
+% LinearTalk.lhs:572:16: error:
+%     • \textcolor{red}{Couldn't match expected weight ‘1’ of variable ‘b’}
+%       \textcolor{red}{with actual weight ‘0’}
+% \end{Verbatim}
 
-\novspacepause
+
+\pause
 
 Linear datatypes work in a non-linear context; we do not need special data
 constructors for linear versus nonlinear data.
@@ -616,7 +620,7 @@ You can define a term to have unlimited use by using the following data type.
 
 > data Unrestricted a where
 >   Unrestricted :: a -> Unrestricted a
-> --  \quad \quad \quad \quad \quad \quad \ \, $\uparrow$ note the normal arrow!
+> --  \quad \quad \quad \quad \quad \quad \ $\uparrow$ note the normal arrow!
 
 
 This allows you to define functions like so
@@ -627,37 +631,44 @@ This allows you to define functions like so
 \end{frame}
 
 
-\section{Two examples using Linear Types}
+\section{Motivation part 2: threading the file}
 
-\begin{frame}
-\frametitle{Examples using Linear Types}
+\begin{frame}{Linear File \textsc{api}}
 
-%format SIR.openFile = "\Varid{openF}_L "
-%format SIR.hClose = "\Varid{closeF}_L "
-%format SIR.hGetLine = "\Varid{getLine}_L "
-%format SIR.return = "\Varid{return}_L "
-%format SI.ReadMode = "\Varid{ReadMode} "
+Let's say we have the following \textsc{api} for accessing a resource (files).
 
-> firstLine :: FilePath -> IO Text
-> firstLine filepath = run $ do
->     f <- SIR.openFile filepath SI.ReadMode
->     (line, f1) <- SIR.hGetLine(f)
->     SIR.hClose(f1)
->     SIR.return line
+> data File
+> data Path 
+
+\novspacepause
+
+We can open and close files,
+
+> openF    ::  Path -> IO File
+> closeF   ::  File -> IO ()
+
+\novspacepause
+
+we can append to files,
+
+> appendF  ::  File -> String -> IO ()
+
+\novspacepause
+
+And we can get the current time as a string.
+
+> now      ::  IO String
 
 %if False
 
->     where
->         -- The builder here is only for using @RebindableSyntax@ in this
->         -- monad.
->         SIR.Builder {..} = SIR.builder
+> openF   = undefined
+> appendF = undefined
+> closeF  = undefined
+> now     = undefined
 
 %endif
 
-  \begin{itemize}
-    \item File IO or array example
-    \item Scanners galore!
-  \end{itemize}
+
 \end{frame}
 
 
@@ -1009,6 +1020,11 @@ But, we need to provide certain types of operational flexibility.
 > combineL _ idElem [] = idElem
 > combineL op idElem (x:xs) = x `op` combineL op idElem xs
 
+\end{frame}
+
+
+\begin{frame}
+
 %format SIR.RIO = "\Varid{IO}_L 1 "
 
 > getLine :: File ->. SIR.RIO (Unrestricted Char, File)
@@ -1016,6 +1032,33 @@ But, we need to provide certain types of operational flexibility.
 %if False
 
 > getLine = undefined
+
+%endif
+
+\end{frame}
+
+
+\begin{frame}
+
+%format SIR.openFile = "\Varid{openF}_L "
+%format SIR.hClose = "\Varid{closeF}_L "
+%format SIR.hGetLine = "\Varid{getLine}_L "
+%format SIR.return = "\Varid{return}_L "
+%format SI.ReadMode = "\Varid{ReadMode} "
+
+> firstLine :: FilePath -> IO Text
+> firstLine filepath = run $ do
+>     f <- SIR.openFile filepath SI.ReadMode
+>     (line, f1) <- SIR.hGetLine f
+>     SIR.hClose f1
+>     SIR.return line
+
+%if False
+
+>     where
+>         -- The builder here is only for using @RebindableSyntax@ in this
+>         -- monad.
+>         SIR.Builder {..} = SIR.builder
 
 %endif
 
