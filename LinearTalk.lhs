@@ -757,7 +757,7 @@ fn append_time(p: Path, n: String) -> io::Result<()>
 
 Here we accidentally close the file too early.
 
-\novspacepause
+\pause
 
 No worries -- we will get a Rust compile time error. An owned file cannot be
 used again after being used once (here, \mintinline{rust}{drop}ped).
@@ -793,7 +793,7 @@ fn append_time(p: Path, n: String) -> io::Result<()>
 }
 \end{minted}
 
-\novspacepause
+\pause
 
 Again, we will get a Rust compile time error. An owned file cannot be used
 again after being used once (here, \mintinline{rust}{move}d to another function).
@@ -951,7 +951,7 @@ powerful static guarantees.
     \item Safe code may be less efficient.
 \end{itemize}
 
-\novspacepause
+\pause
 
 ... but Rust provides some escape hatches:
 
