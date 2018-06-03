@@ -88,7 +88,7 @@
 
 \usepackage{minted}
 
-%% Footnotes without an accomanying numerical binding.
+%% Footnotes without an accompanying numerical binding.
 \newcommand\blfootnote[1]{%
   \begingroup
   \renewcommand\thefootnote{}\footnote{#1}%
@@ -97,6 +97,8 @@
 }
 
 \newcommand{\m}[1]{$#1$}
+
+\newcommand{\novspacepause}{\vspace*{-\baselineskip}\pause}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % lhs2tex formatting rules                  %
@@ -155,20 +157,20 @@ Let's say we have the following \textsc{api} for accessing a resource (files).
 > data File
 > data Path 
 
-\pause
+\novspacepause
 
 We can open and close files,
 
 > openF    ::  Path -> IO File
 > closeF   ::  File -> IO ()
 
-\pause
+\novspacepause
 
 we can append to files,
 
 > appendF  ::  File -> String -> IO ()
 
-\pause
+\novspacepause
 
 And we can get the current time as a string.
 
@@ -228,7 +230,7 @@ What if we made a mistake and closed the file. Does the result still typecheck?
 
 %endif
 
-\pause
+\novspacepause
 
 \emph{The developer is responsible} for a property that the compiler does
 not check for.
@@ -283,7 +285,13 @@ In most type systems, three structural properties that allow unrestricted
 use of a variable; unrestricted meaning variables can be dropped,
 duplicated, and reordered.
 
-The structural rules are exchange, contraction, and weakening.
+The substructural rules are 
+
+\begin{itemize}
+  \item exchange
+  \item contraction
+  \item weakening.
+\end{itemize}
 
 \end{frame}
 
@@ -293,22 +301,22 @@ The structural rules are exchange, contraction, and weakening.
 The exchange rule allows us to type check in any desired order when multiple
 terms have to be checked at the same time.
 
-\pause
-
-Restricting this property means that we have to type check terms \emph{in
-the opposite order they were introduced} (a \textsc{filo} order).
-
 % \begin{equation*}
 %   Γ, x:A, y:B ⊢  t:T \text{, then } Γ, y:B, x:A ⊢  t:T
 % \end{equation*}
 
-\pause
+\novspacepause
 
 For example, when type checking the following function
 
 > exchange = let x = (4 :: Int) in let y = (5 :: Int) in (x, y)
 
 We can check that |x| or |y| are |Int|s in either order.
+
+\novspacepause
+
+Restricting this property means that we have to type check terms \emph{in
+the opposite order they were introduced} (a \textsc{filo} order).
 
 \end{frame}
 
@@ -317,15 +325,11 @@ We can check that |x| or |y| are |Int|s in either order.
 
 The contraction rule lets us use a proof of a variable's type twice.
 
-\pause
-
-Restricting this property means we \emph{can't use a term more than once}.
-
 % \begin{equation*}
 %   Γ, x:A, x:A ⊢  t:T \text{, then } Γ, x:A ⊢  t:T
 % \end{equation*}
 
-\pause
+\novspacepause
 
 For example, when type checking the following function
 
@@ -334,23 +338,23 @@ For example, when type checking the following function
 
 We can use the proof that |x :: a| twice.
 
+\novspacepause
+
+Restricting this property means we \emph{can't use a term more than once}.
+
 \end{frame}
 
 
-\begin{frame}{Weakening: we can discard undeeded type proof}
+\begin{frame}{Weakening: we can discard unused type proofs}
 
-The weaking rule means we can discard unnecessary type proofs.
-
-\pause
-
-Restricting this property means we \emph{must use a term at least once}.
+The weakening rule means we can discard unnecessary type proofs.
 
 
 % \begin{equation*}
 %   Γ ⊢  t:T \text{, then } Γ, x:A ⊢  t:T
 % \end{equation*}
 
-\pause
+\novspacepause
 
 For example, when type checking the following function
 
@@ -359,6 +363,10 @@ For example, when type checking the following function
 
 We do not need to use the fact that |x :: a| while type checking the right
 hand side.
+
+\novspacepause
+
+Restricting this property means we \emph{must use a term at least once}.
 
 \end{frame}
 
@@ -463,7 +471,7 @@ Say we want to take the sum of a list. How do we check that we consumed every
 element exactly once?
 \blfootnote{"|->.|" is represented as "\verb|->.|" in source code}
 
-\pause
+\novspacepause
 
 %format sumL = "\Varid{sum_{L}} "
 %format x_extra = "\textcolor{red}{\Varid{x}} "
@@ -483,7 +491,7 @@ What if we accidentally use an element twice?
 < sumL []      =  0
 < sumL (x:xs)  =  x +. sumL xs +. x_extra
 
-\pause
+\novspacepause
  
 The type checker will helpfully tell us we violated linearity.
 
@@ -506,7 +514,7 @@ What if we forgot to use the elements of our list?
 < sumL []      =  0
 < sumL (x:xs)  =  one_kill +. sumL xs 
 
-\pause
+\novspacepause
  
 The type checker will helpfully tell us we violated linearity.
 
@@ -547,7 +555,7 @@ To consume a variable exactly once, we use the following rules
 The linear arrow says how the function \emph{uses its argument}; it does not
 restrict what is passed to the function.
 
-\pause
+\novspacepause
 
 > f :: s ->. t
 > g :: s -> t
@@ -565,6 +573,8 @@ restrict what is passed to the function.
 
 \begin{frame}[fragile]{All datatypes are linear by default}
 
+In Linear Haskell, all data constructors use linear arrows by default.
+
 %format (Pair (a) (b)) = "( " a ", " b ") "
 %format fst' = "\Varid{fst}_{\omega} "
 %format fst'' = "\Varid{fst}_{1} "
@@ -572,10 +582,16 @@ restrict what is passed to the function.
 > data Pair a b where
 >   Pair :: a ->. b ->. Pair a b
 
+\novspacepause
+
+So we can define the normal |fst| function and have it work as expected.
+
 > fst' :: Pair a b -> a
 > fst' (Pair a b) = a
 
-\pause
+\novspacepause
+
+But a linear |fst| is not possible, as it requires a linear use of |b|.
 
 < fst'' :: Pair a b ->. a
 < fst'' (Pair a b) = a
@@ -586,7 +602,7 @@ LinearTalk.lhs:572:16: error:
       \textcolor{red}{with actual weight ‘0’}
 \end{Verbatim}
 
-\pause
+\novspacepause
 
 Linear datatypes work in a non-linear context; we do not need special data
 constructors for linear versus nonlinear data.
@@ -600,6 +616,7 @@ You can define a term to have unlimited use by using the following data type.
 
 > data Unrestricted a where
 >   Unrestricted :: a -> Unrestricted a
+> --  \quad \quad \quad \quad \quad \quad \ \, $\uparrow$ note the normal arrow!
 
 
 This allows you to define functions like so
@@ -741,7 +758,7 @@ fn append_time_to_file(
 
 Here we accidentally close the file too early.
 
-\pause
+\novspacepause
 
 No worries -- we will get a Rust compile time error. An owned file cannot be
 used again after being used once (here, \mintinline{rust}{drop}ped).
@@ -783,8 +800,11 @@ fn append_time_to_file(
 }
 \end{minted}
 
+\novspacepause
+
 Again, we will get a Rust compile time error. An owned file cannot be used
 again after being used once (here, \mintinline{rust}{move}d to another function).
+
 \end{frame}
 
 \begin{frame}
@@ -926,7 +946,7 @@ powerful static guarantees.
     \item Safe code may be less efficient.
 \end{itemize}
 
-\pause
+\novspacepause
 
 ... but Rust provides some escape hatches:
 
