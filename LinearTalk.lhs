@@ -968,9 +968,6 @@ to understand the goals of the Rust language.
     concurrency'').
 \end{itemize}
 
-While supporting both aliasing and mutability, a \textbf{static guarantee of
-mutual exclusion between these two} is at the heart of Rust's abilities.
-
 \end{frame}
 
 \begin{frame}
@@ -1043,7 +1040,8 @@ language, Rust provides pass-by-reference types termed \textbf{borrow} types.
 \begin{itemize}
     \item Borrow types are part of the ownership system and must enforce the
     same invariants.
-    \item They also have unrestricted and affine variants.
+    \item Aliasing and mutability mutually excluded (static guarantee).
+    \item Borrow types also have unrestricted and affine variants.
 \end{itemize}
 \end{frame}
 
@@ -1202,6 +1200,7 @@ describing \textit{protocols}.
 %endif
 
 Communicating channels are implemented as dual session types.
+
 > s :: Int :!: Bool :?: Eps -- Channel 1
 > s_dual :: Int :?: Bool :!: Eps -- Channel 2
 
