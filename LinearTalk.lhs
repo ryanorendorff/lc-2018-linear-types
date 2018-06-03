@@ -776,10 +776,11 @@ The Rust compiler establishes and tracks \textbf{ownership}.
 
 \begin{itemize}
     \item The compiler automatically inserts calls to \mintinline{rust}{drop}
-    when an owned type goes out of scope.
+    when an owned type with \mintinline{rust}{move} semantics goes out of
+    scope.
     \item This provides automatic memory safety without GC.
-    \item It also means that you cannot forget to ``finalize'' resources such
-    as files, sockets, etc.
+    \item It also means that you cannot forget to ``finalize'' these
+    resources (\textit(e.g.), files, sockets, etc.).
 \end{itemize}
 \end{frame}
 
@@ -830,8 +831,8 @@ fn append_time(p: Path, n: String) -> io::Result<()>
 }
 \end{minted}
 
-Here we \mintinline{rust}{move} the file to another function for processing but still try to
-append to it.
+Here we \mintinline{rust}{move} the file to another function for processing
+but still try to append to it.
 \end{frame}
 
 \begin{frame}[fragile]
@@ -847,17 +848,15 @@ fn append_time(p: Path, n: String) -> io::Result<()>
 }
 \end{minted}
 
-\pause
-
-Again, we will get a Rust compile time error. An owned file cannot be used
-again after being used once (here, \mintinline{rust}{move}d to another function).
+Again, we get a Rust compile time error. An owned file cannot be used again
+after being used once (here, \mintinline{rust}{move}d to another function).
 
 \end{frame}
 
 \begin{frame}
 \frametitle{Rust and Substructural Types}
-Like Linear Haskell, the Rust type system includes linear (or affine) types
-along with unrestricted types.
+Like Linear Haskell, the Rust type system includes restricted types
+(linear/affine*) along with unrestricted types.
 \begin{itemize}
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
     function arrow}.
@@ -868,8 +867,8 @@ along with unrestricted types.
 
 \begin{frame}
 \frametitle{Factors Influencing Rust's Implementation}
-Understanding the goals of the Rust language helps to understand Rust's
-substructural type system implementation.
+To understand Rust's substructural type system implementation, it is helpful
+to understand the goals of the Rust language.
 
 \begin{itemize}
     \item Enable low-level systems programming.
@@ -878,8 +877,8 @@ substructural type system implementation.
     concurrency'').
 \end{itemize}
 
-While supporting both aliasing and mutability, a static guarantee of
-mutual exclusion between these two is at the heart of Rust's abilities.
+While supporting both aliasing and mutability, a \textbf{static guarantee of
+mutual exclusion between these two} is at the heart of Rust's abilities.
 
 \end{frame}
 
@@ -950,8 +949,6 @@ language, Rust provides pass-by-reference types termed \textbf{borrow} types.
 &'a mut T // Mutable borrow to T with lifetime `a`.
 \end{minted}
 
-Often the lifetime can be elided and figured out by the compiler.
-
 Borrow types are part of the ownership system and must enforce the same
 invariants. They also have unrestricted and linear/affine variants.
 \end{frame}
@@ -976,7 +973,8 @@ Are those restricted types in Rust affine or linear?
     inserts \mintinline{rust}{drop} (deallocation calls) at compile time.
 \end{itemize}
 
-So which is it in the end?
+So which is it in the end? Do implicit \mintinline{rust}{drop}s constitute
+linearity?
 \end{frame}
 
 \begin{frame}
@@ -1109,6 +1107,7 @@ describing \textit{protocols}.
 
 %endif
 
+Communicating channels are implemented as dual session types.
 > s :: Int :!: Bool :?: Eps -- Channel 1
 > s_dual :: Int :?: Bool :!: Eps -- Channel 2
 
