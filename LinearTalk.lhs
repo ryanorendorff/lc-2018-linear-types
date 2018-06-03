@@ -835,13 +835,14 @@ LinearTalk.lhs:784:7: error:
 \begin{frame}[fragile]
 \frametitle{Opening a File in Rust}
 \begin{minted}{rust}
-fn append_time(p: Path, n: String) -> io::Result<()>
+fn append_time(p: &Path, n: String) -> io::Result<()>
 {
-    let f = File::open(p)?;
+    let mut f = File::open(p)?;
     let mut s = String::new();
     f.read_to_string(&mut s)?;
     s.push_str(&n);
     drop(f); // close the file
+    Ok(())
 }
 \end{minted}
 \end{frame}
@@ -849,13 +850,14 @@ fn append_time(p: Path, n: String) -> io::Result<()>
 \begin{frame}[fragile]
 \frametitle{What if We Forgot to Close it?}
 \begin{minted}{rust}
-fn append_time(p: Path, n: String) -> io::Result<()>
+fn append_time(p: &Path, n: String) -> io::Result<()>
 {
-    let f = File::open(p)?;
+    let mut f = File::open(p)?;
     let mut s = String::new();
     f.read_to_string(&mut s)?;
     s.push_str(&n);
     // <- no `drop`
+    Ok(())
 }
 \end{minted}
 \end{frame}
@@ -878,12 +880,13 @@ The Rust compiler establishes and tracks \textbf{ownership}.
 \begin{frame}[fragile]
 \frametitle{Cannot Forget! The Compiler Inserts `drop`}
 \begin{minted}{rust}
-fn append_time(p: Path, n: String) -> io::Result<()>
+fn append_time(p: &Path, n: String) -> io::Result<()>
 {
-    let f = File::open(p)?;
+    let mut f = File::open(p)?;
     let mut s = String::new();
     f.read_to_string(&mut s)?;
     s.push_str(&n);
+    Ok(())
 } // compiler `drop`s all resources of scope here
 \end{minted}
 \end{frame}
@@ -891,13 +894,14 @@ fn append_time(p: Path, n: String) -> io::Result<()>
 \begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
 \begin{minted}{rust}
-fn append_time(p: Path, n: String) -> io::Result<()>
+fn append_time(p: &Path, n: String) -> io::Result<()>
 {
-    let f = File::open(p)?;
+    let mut f = File::open(p)?;
     let mut s = String::new();
     drop(f); // early drop
     f.read_to_string(&mut s)?; // invalid second use
     s.push_str(&n);
+    Ok(())
 }
 \end{minted}
 
@@ -905,42 +909,39 @@ Here we accidentally close the file too early.
 
 \pause
 
-No worries -- we will get a Rust compile time error. The file cannot be used
-again after being used once (here, \mintinline{rust}{drop}ped).
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/early_drop_compiler_error.png}
+\end{center}
 \end{frame}
+
+%No worries -- we will get a Rust compile time error. The file cannot be used
+%again after being used once (here, \mintinline{rust}{drop}ped).
+%\end{frame}
 
 \begin{frame}[fragile]
 \frametitle{What if We Close or `move` the File Early?}
 \begin{minted}{rust}
-fn append_time(p: Path, n: String) -> io::Result<()>
+fn append_time(p: &Path, n: String) -> io::Result<()>
 {
-    let f = File::open(p)?;
-    let mut s = String::new();
-    send_file_to_other_function(f); // whoops!
-    f.read_to_string(&mut s)?;
-    s.push_str(&n);
-}
-\end{minted}
-
-Here we \mintinline{rust}{move} the file to another function for processing
-but still try to append to it.
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{What if We Close or `move` the File Early?}
-\begin{minted}{rust}
-fn append_time(p: Path, n: String) -> io::Result<()>
-{
-    let f = File::open(p)?;
+    let mut f = File::open(p)?;
     let mut s = String::new();
     send_file_to_other_function(f); // whoops!
     f.read_to_string(&mut s)?; // compiler error here
     s.push_str(&n);
+    Ok(())
 }
 \end{minted}
 
-Again, we get a Rust compile time error. The file cannot be used again after
-being used once (here, \mintinline{rust}{move}d to another function).
+Here we \mintinline{rust}{move} the file early.
+
+\pause
+
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/move_then_use_compiler_error.png}
+\end{center}
+
+%Again, we get a Rust compile time error. The file cannot be used again after
+%being used once (\mintinline{rust}{move}d to another function).
 
 \end{frame}
 
@@ -1069,22 +1070,22 @@ language, Rust provides pass-by-reference types termed \textbf{borrow} types.
 %linearity?
 %\end{frame}
 
-\begin{frame}
-\frametitle{What do Affine Types Provide in Rust?}
-
-Substructural typing is at the core of Rust's ownership type system. They
-are, along with \mintinline{rust}{borrowck}, what allow Rust to provide
-powerful static guarantees.
-
-\begin{itemize}
-    \item Automatic memory management without a GC.
-    \item Statically ensure memory and thread safety.
-    \item Statically ensure proper management (finalization) of resources
-    (\textit{e.g.}, sockets, files, mutexes).
-    \item Building block for other abstractions (session types).
-\end{itemize}
-
-\end{frame}
+%\begin{frame}
+%\frametitle{What do Affine Types Provide in Rust?}
+%
+%Substructural typing is at the core of Rust's ownership type system. They
+%are, along with \mintinline{rust}{borrowck}, what allow Rust to provide
+%powerful static guarantees.
+%
+%\begin{itemize}
+%    \item Automatic memory management without a GC.
+%    \item Statically ensure memory and thread safety.
+%    \item Statically ensure proper management (finalization) of resources
+%    (\textit{e.g.}, sockets, files, mutexes).
+%    \item Building block for other abstractions (session types).
+%\end{itemize}
+%
+%\end{frame}
 %
 %\begin{frame}
 %\frametitle{Tradeoffs with Rust's Ownership Type System}
