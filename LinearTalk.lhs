@@ -5,6 +5,7 @@
 > {-# LANGUAGE EmptyDataDecls #-}
 > {-# LANGUAGE RebindableSyntax #-}
 > {-# LANGUAGE RecordWildCards #-}
+> {-# LANGUAGE TypeOperators #-}
 >
 > module LinearTalk where
 > import qualified Prelude.Linear as PL
@@ -1090,14 +1091,33 @@ describing \textit{protocols}.
 
 \end{frame}
 
+
 \begin{frame}
 
-> data (:!:) a r -- tx `a` then continue with `r`
-> data (:?:) a r -- rx `a` then continue with `r`
+%format :!: = "\ :\mkern2mu !\mkern-3mu: \  "
+%format :?: = "\ :\mkern-4mu ?\mkern-5mu: \  "
+%format s_dual = "\overline{\Varid{" s "}} "
+
+> data a :!: r -- tx `a` then continue with `r`
+> data a :?: r -- rx `a` then continue with `r`
 > data Eps       -- Protocol is depleted
 
-> Int :!: Bool :?: Eps -- Channel 1
-> Int :?: Bool :!: Eps -- Channel 2
+%if False
+
+> infixr 5 :!:
+> infixr 5 :?:
+
+%endif
+
+> s :: Int :!: Bool :?: Eps -- Channel 1
+> s_dual :: Int :?: Bool :!: Eps -- Channel 2
+
+%if False
+
+> s = undefined
+> s_dual = undefined
+
+%endif 
 
 \end{frame}
 
