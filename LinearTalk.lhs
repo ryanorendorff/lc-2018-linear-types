@@ -9,11 +9,13 @@
 > module LinearTalk where
 > import qualified Prelude.Linear as PL
 > import qualified Prelude as P
-> import Prelude hiding (FilePath, (>>=), (>>), return)
+> import Prelude hiding ((>>=), (>>))
 > import Num
-> import System.IO as SI
-> import System.IO.Resource as SIR
-> import Data.Text (Text)
+> import qualified System.IO as SI
+> import qualified System.IO.Resource as SIR
+> import Data.Text (Text, pack)
+>
+> import Data.Time.Clock.POSIX
 
 
 > -- Linear Array interface taken from the paper
@@ -157,34 +159,40 @@
 
 Let's say we have the following \textsc{api} for accessing a resource (files).
 
+
 > data File
-> data Path 
+
+\vspace*{-0.7\baselineskip}
+\vspace*{-\baselineskip}
+
+< data FilePath 
 
 \novspacepause
 
 We can open and close files,
 
-> openF    ::  Path -> IO File
+> openF    ::  FilePath -> IO File
 > closeF   ::  File -> IO ()
 
 \novspacepause
 
 we can append to files,
 
-> appendF  ::  File -> String -> IO ()
+> appendF  ::  File -> Text -> IO ()
 
 \novspacepause
 
-And we can get the current time as a string.
+and we can get the current time as a string.
 
-> now      ::  IO String
+> now      ::  IO Text
 
 %if False
 
 > openF   = undefined
 > appendF = undefined
 > closeF  = undefined
-> now     = undefined
+> now     = (pack . show . round) `fmap` getPOSIXTime 
+> {-# NOINLINE now #-}
 
 %endif
 
@@ -196,12 +204,12 @@ And we can get the current time as a string.
 Let's write a simple program for adding the current date to the end of the
 file.
 
-> appendTimeToFile :: Path -> IO ()
+> appendTimeToFile :: FilePath -> IO ()
 > appendTimeToFile path = do
->   f <- openF path 
->   n <- now
->   appendF f n
->   closeF f
+>     f <- openF path 
+>     n <- now
+>     appendF f n
+>     closeF f
 
 %if False
 
@@ -218,12 +226,12 @@ file.
 
 What if we made a mistake and closed the file. Does the result still typecheck?
 
-> appendTimeToFile' :: Path -> IO ()
+> appendTimeToFile' :: FilePath -> IO ()
 > appendTimeToFile' path = do
->   f <- openF path 
->   n <- now
->   closeF f     
->   appendF f n  -- Oops, we closed the file
+>     f <- openF path 
+>     n <- now
+>     closeF f     
+>     appendF f n  -- Oops, we closed the file
 
 %if False
 
@@ -233,7 +241,7 @@ What if we made a mistake and closed the file. Does the result still typecheck?
 
 %endif
 
-\novspacepause
+\pause
 
 \emph{The developer is responsible} for a property that the compiler does
 not check for.
@@ -633,38 +641,83 @@ This allows you to define functions like so
 
 \section{Motivation part 2: threading the file}
 
+%format SIR.RIO = "\Varid{IO}_L "
+%format SIR.run = "\Varid{run}_L "
+
+%format File_L = "\Varid{File} "
+
+%format appendTimeToFile_L
+%format openF_L
+%format appendF_L
+%format closeF_L
+
+%format f_1
+
+%format PL.Unrestricted = "\Varid{Unrestricted} "
+%format P.>>= = >>= 
+
+
 \begin{frame}{Linear File \textsc{api}}
+
+%if False
+
+> type File_L = SIR.Handle
+
+%endif
+
 
 Let's say we have the following \textsc{api} for accessing a resource (files).
 
-> data File
-> data Path 
+< data File_L
+< data FilePath 
 
 \novspacepause
 
 We can open and close files,
 
-> openF    ::  Path -> IO File
-> closeF   ::  File -> IO ()
+> openF_L    ::  FilePath -> SIR.RIO File_L
+> closeF_L   ::  File_L ->. SIR.RIO (PL.Unrestricted ())
 
 \novspacepause
 
 we can append to files,
 
-> appendF  ::  File -> String -> IO ()
+> appendF_L  ::  File_L ->. Text -> SIR.RIO (File_L)
 
 \novspacepause
 
 And we can get the current time as a string.
 
-> now      ::  IO String
+< now      ::  IO Text
 
 %if False
 
-> openF   = undefined
-> appendF = undefined
-> closeF  = undefined
-> now     = undefined
+> openF_L   = (\f -> SIR.openFile f SI.AppendMode)
+> appendF_L = SIR.hPutStrLn
+> closeF_L f = SIR.hClose f >> (SIR.return (PL.Unrestricted ()))
+>     where
+>         SIR.Builder {..} = SIR.builder
+
+
+%endif
+
+\end{frame}
+
+
+\begin{frame}{Appending time to a file part 2}
+
+> appendTimeToFile_L :: FilePath -> IO ()
+> appendTimeToFile_L path = now P.>>= (\n -> SIR.run $ do
+>     f <- openF_L path 
+>     f_1 <- appendF_L f n
+>     closeF_L f_1)
+
+%if False
+
+>     where
+>         -- The builder here is only for using @RebindableSyntax@ in this
+>         -- monad.
+>         SIR.Builder {..} = SIR.builder
 
 %endif
 
@@ -672,7 +725,7 @@ And we can get the current time as a string.
 \end{frame}
 
 
-\section{The competition}
+\section{The Competition}
 
 \begin{frame}
   Also called "the competition".
@@ -1104,7 +1157,6 @@ hardware-software interactions in our system.
 
 \begin{frame}
 
-%format SIR.RIO = "\Varid{IO}_L 1 "
 
 > getLine :: File ->. SIR.RIO (Unrestricted Char, File)
 
@@ -1119,14 +1171,8 @@ hardware-software interactions in our system.
 
 \begin{frame}
 
-%format SIR.openFile = "\Varid{openF}_L "
-%format SIR.hClose = "\Varid{closeF}_L "
-%format SIR.hGetLine = "\Varid{getLine}_L "
-%format SIR.return = "\Varid{return}_L "
-%format SI.ReadMode = "\Varid{ReadMode} "
-
 > firstLine :: FilePath -> IO Text
-> firstLine filepath = run $ do
+> firstLine filepath = SIR.run $ do
 >     f <- SIR.openFile filepath SI.ReadMode
 >     (line, f1) <- SIR.hGetLine f
 >     SIR.hClose f1
