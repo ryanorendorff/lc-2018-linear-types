@@ -995,20 +995,21 @@ We build and operate large imaging scanners.
 \end{itemize}
 \end{frame}
 
-\begin{frame}
-\frametitle{Important Software-Related Tasks}
-
-\begin{itemize}
-    \item Pulse sequences designed and validated in software (control high
-    currents and power -- handle with care!).
-    \item Communication of data between real-time system directly 
-    controlling the magnets and ``control'' computer.
-    \item Monitoring system hardware (sensors) and taking appropriate
-    actions for invalid conditions.
-    \item Higher level routing of scanner, as a resource, in an
-    asynchronous task management system.
-\end{itemize}
-\end{frame}
+%\begin{frame}
+%\frametitle{Important Software-Related Tasks}
+%
+%\begin{itemize}
+%    \item Pulse sequences designed and validated in software (control high
+%    currents and power -- handle with care!).
+%    \item Communication of data between real-time system directly 
+%    controlling the magnets and ``control'' computer.
+%    \item Hardware boot up/enable and shutdown sequences.
+%    \item Monitoring system hardware (sensors) and taking appropriate
+%    actions for invalid conditions.
+%    \item Higher level routing of scanner, as a resource, in an
+%    asynchronous task management system.
+%\end{itemize}
+%\end{frame}
 
 \begin{frame}
 \frametitle{Examples of how We Might Leverage Linear Types}
@@ -1017,6 +1018,57 @@ substructural typing constructs (as well as more FP).
 
 We'll discuss how \textbf{session types}, based on linear typing, are
 attractive for some of these sensitive tasks.
+\end{frame}
+
+\begin{frame}
+\frametitle{Session Types}
+
+Session types extend the notion of types from describing \textit{data} to
+describing \textit{protocols}.
+
+\begin{itemize}
+    \item A session type formalizes sequencing and order of a protocol in the
+    type system.
+    \item Implementing session types requires linear threading (most easily
+    implemented with linear/affine types).
+    \item Often discussed in the context of channel-based communication where
+    currently the developer is responsible for ensuring a protocol is obeyed.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+
+> data (:!:) a r -- tx `a` then continue with `r`
+> data (:?:) a r -- rx `a` then continue with `r`
+> data Eps       -- Protocol is depleted
+
+> Int :!: Bool :?: Eps -- Channel 1
+> Int :?: Bool :!: Eps -- Channel 2
+
+\end{frame}
+
+\begin{frame}
+
+Standard communication protocols are not the only use for session types.
+
+Session types could be very helpful to statically guarantee proper
+hardware-software interactions in our system.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Possible Applications for Us}
+
+\begin{itemize}
+    \item Communication protocol between our real-time system (directly
+    plays pulse sequences to hardware) and control computer.
+    \item Encoding of proper hardware boot up/shutdown sequences.
+    \item Protocol for dynamic pulse sequence modification based on real-time
+    feedback.
+    \item Pulse sequence generation API tool.
+\end{itemize}
+
 \end{frame}
 
 \section{Conclusion}
