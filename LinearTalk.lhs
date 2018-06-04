@@ -1,22 +1,26 @@
 %if False
 
-> {-# LANGUAGE GADTs #-}
-> {-# LANGUAGE ScopedTypeVariables #-}
-> {-# LANGUAGE EmptyDataDecls #-}
-> {-# LANGUAGE RebindableSyntax #-}
-> {-# LANGUAGE RecordWildCards #-}
-> {-# LANGUAGE TypeOperators #-}
-> {-# LANGUAGE MultiParamTypeClasses #-}
+> {-# LANGUAGE GADTs                  #-}
+> {-# LANGUAGE ScopedTypeVariables    #-}
+> {-# LANGUAGE EmptyDataDecls         #-}
+> {-# LANGUAGE RebindableSyntax       #-}
+> {-# LANGUAGE RecordWildCards        #-}
+> {-# LANGUAGE TypeOperators          #-}
+> {-# LANGUAGE MultiParamTypeClasses  #-}
 > {-# LANGUAGE FunctionalDependencies #-}
-> {-# LANGUAGE OverloadedStrings #-}
+> {-# LANGUAGE OverloadedStrings      #-}
 >
 > module LinearTalk where
+> 
 > import qualified Prelude.Linear as PL
 > import qualified Prelude as P
 > import Prelude hiding ((>>=), (>>))
+> 
 > import Num
+>
 > import qualified System.IO as SI
 > import qualified System.IO.Resource as SIR
+>
 > import Data.Text (Text, pack)
 > import Data.String (fromString)
 >
