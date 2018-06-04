@@ -37,16 +37,34 @@
 > freeze :: MArray a ->. PL.Unrestricted (Array a)
 > freeze = undefined
 >
-> -- I think the paper made a boo-boo. The multiplicity polymorphism is
+> -- I think the paper made a boo-boo? The multiplicity polymorphism is
 > -- written as 
 > -- foldL :: (a ->p b ->q  a) -> a ->p [b] ->q a
-> -- but their second use of `q` is 1 instead of `ω` as it is for `write`.
+> -- but the `q` values don't match if you sub in `write`'s signature
+> -- this is however different from their presentation! T_T
 > foldlL :: (a ->. b ->. a) -> a ->. [b] ->. a
-> foldlL = undefined
+> foldlL _ i [] = i
+> foldlL f i (x:xs) = foldlL f (f i x) xs
 >
 > -- The actual function that guarantees arrays are written correctly.
 > array :: Int -> [(Int, a)] -> Array a
 > array size pairs = newMArray size (\ma -> freeze (foldlL write ma pairs))
+
+> c :: (Int ->. Int) ->. Int ->. Int
+> c f x = f x +. 1
+
+> d :: (Int -> Int)
+> d x = 3
+
+> e = c d
+
+> x :: (Int -> Int) ->. Int
+> x f = f 5
+
+> y :: (Int ->. Int)
+> y i = i
+
+> z = x y
 
 %endif
 
@@ -579,8 +597,8 @@ To consume a variable exactly once, we use the following rules
   \item A function: Pass in one argument and consume the result exactly
         once.
         \begin{itemize}[<+->]
-          \item This is a bit tricky. It means, for |(f :: A ->. B)|, if |f u| 
-                is used exactly once, \emph{then} |u| is used exactly once.
+          \item This is a bit tricky. It means, for |(f :: A ->. B)|, if |f x| 
+                is used exactly once, \emph{then} |x| is used exactly once.
         \end{itemize}
   \item For any algebraic data type, pattern match and consume all components
         exactly once.
@@ -714,7 +732,7 @@ We can open and close files,
 
 we can append to files,
 
-> appendF_L  ::  File_L ->. Text -> SIR.RIO (File_L)
+> appendF_L  ::  File_L ->. Text -> SIR.RIO File_L
 
 \novspacepause
 
