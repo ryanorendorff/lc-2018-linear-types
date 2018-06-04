@@ -6,6 +6,8 @@
 > {-# LANGUAGE RebindableSyntax #-}
 > {-# LANGUAGE RecordWildCards #-}
 > {-# LANGUAGE TypeOperators #-}
+> {-# LANGUAGE MultiParamTypeClasses #-}
+> {-# LANGUAGE FunctionalDependencies #-}
 >
 > module LinearTalk where
 > import qualified Prelude.Linear as PL
@@ -1165,8 +1167,13 @@ We build and operate large imaging scanners.
 We believe many of the safety-critical aspects of our system can benefit from
 substructural typing constructs (as well as more FP).
 
-We'll briefly discuss how \textbf{session types}, based on linear typing, are
-attractive for some of these sensitive tasks.
+We'll briefly discuss how linear types are attractive for these sensitive
+tasks.
+
+\begin{itemize}
+    \item \textbf{session types} (require linear typing).
+    \item Encoding our scanner as a linear resource.
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -1178,8 +1185,7 @@ describing \textit{protocols}.
 \begin{itemize}
     \item A session type formalizes sequencing and order of a protocol in the
     type system.
-    \item Often discussed in the context of channel-based communication where
-    currently the developer is responsible for ensuring a protocol is obeyed.
+    \item Often discussed in the context of channel-based communication.
 \end{itemize}
 
 \end{frame}
@@ -1189,22 +1195,34 @@ describing \textit{protocols}.
 You can implement session types with:
 
 \begin{itemize}
-    \item type classes (sequence, duality)
-    \item linear threading (most easily implemented with linear/affine types).
+    \item types and classes/traits (duality, sequencing)
+    \item linear threading (linear types, indexed monads).
 \end{itemize}
 
 \end{frame}
 
 
 \begin{frame}
+\frametitle{Session Types}
 
 %format :!: = "\ :\mkern2mu !\mkern-3mu: \  "
 %format :?: = "\ :\mkern-4mu ?\mkern-5mu: \  "
+%format :+: = "\ :\mkern-2mu +\mkern-2mu: \  "
+%format :&: = "\ :\mkern-2mu \&\mkern-2mu: \  "
 %format s_dual = "\overline{\Varid{" s "}} "
+
+Some of the basic building block types:
 
 > data a :!: r -- tx `a` then continue with `r`
 > data a :?: r -- rx `a` then continue with `r`
-> data Eps       -- Protocol is depleted
+> data a :+: r -- Choose `r` or `s`
+> data a :&: r -- Offer `r` or `s`
+> data Eps     -- Protocol is depleted
+
+Duality can be encoded using a type class with multiple parameters and
+functional dependencies that indicate bijectiveness:
+
+> class Dual r s | r -> s, s -> r 
 
 %if False
 
@@ -1213,36 +1231,51 @@ You can implement session types with:
 
 %endif
 
-Communicating channels are implemented as dual session types.
+\end{frame}
+
+\begin{frame}
+\frametitle{Session Types}
+
+Communicating channels are implemented as dual session types:
 
 > s :: Int :!: Bool :?: Eps -- Channel 1
 > s_dual :: Int :?: Bool :!: Eps -- Channel 2
+
+Why session types require linearity:
+
+> c :: Int :!: Eps
+> func :: Channel (Int :!: Eps) -> Channel (Int :!: Eps) -> (Int, Int)
+> func c c -- `func` sends Int down both channels
+
+Two |Int|s will be sent down the same channel, violating protocol.
 
 %if False
 
 > s = undefined
 > s_dual = undefined
+> chan = undefined
+> func = undefined
 
 %endif 
 
 \end{frame}
 
-\begin{frame}
-
-Standard communication protocols are not the only use for session types.
-
-Session types could be very helpful to statically guarantee proper
-hardware-software interactions in our system.
-
-\end{frame}
+%\begin{frame}
+%
+%Standard communication protocols are not the only use for session types.
+%
+%Session types could be very helpful to statically guarantee proper
+%hardware-software interactions in our system.
+%
+%\end{frame}
 
 \begin{frame}
 \frametitle{Possible Applications for Us}
 
 \begin{itemize}
+    \item Encoding of proper hardware boot up/shutdown sequences.
     \item Communication protocol between our real-time system (directly
     plays pulse sequences to hardware) and control computer.
-    \item Encoding of proper hardware boot up/shutdown sequences.
     \item Protocol for dynamic pulse sequence modification based on real-time
     feedback.
     \item Pulse sequence generation API tool.
@@ -1256,7 +1289,6 @@ hardware-software interactions in our system.
 \frametitle{Conclusion}
   Something about why linear types are cool, try it out, etc.
 \end{frame}
-
 
 \appendix
 
