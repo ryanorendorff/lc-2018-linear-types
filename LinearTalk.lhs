@@ -50,13 +50,13 @@
 > array :: Int -> [(Int, a)] -> Array a
 > array size pairs = newMArray size (\ma -> freeze (foldlL write ma pairs))
 
-> c :: (Int ->. Int) ->. Int ->. Int
-> c f x = f x +. 1
+> j :: (Int ->. Int) ->. Int ->. Int
+> j f x = f x +. 1
 
 > d :: (Int -> Int)
 > d x = 3
 
-> e = c d
+> e = j d
 
 > x :: (Int -> Int) ->. Int
 > x f = f 5
@@ -1261,9 +1261,13 @@ Communicating channels are implemented as dual session types:
 
 Why session types require linearity:
 
-> c :: Int :!: Eps
+> c :: Channel (Int :!: Eps)
+>
+> data Channel a
+
 > func :: Channel (Int :!: Eps) -> Channel (Int :!: Eps) -> (Int, Int)
-> func c c -- `func` sends Int down both channels
+>
+> p = func c c -- `func` sends Int down both channels
 
 Two |Int|s will be sent down the same channel, violating protocol.
 
@@ -1272,6 +1276,7 @@ Two |Int|s will be sent down the same channel, violating protocol.
 > s = undefined
 > s_dual = undefined
 > chan = undefined
+> c = undefined
 > func = undefined
 
 %endif 
