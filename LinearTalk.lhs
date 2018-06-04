@@ -6,8 +6,6 @@
 > {-# LANGUAGE RebindableSyntax #-}
 > {-# LANGUAGE RecordWildCards #-}
 > {-# LANGUAGE TypeOperators #-}
-> {-# LANGUAGE MultiParamTypeClasses #-}
-> {-# LANGUAGE FunctionalDependencies #-}
 >
 > module LinearTalk where
 > import qualified Prelude.Linear as PL
@@ -1132,7 +1130,7 @@ language, Rust provides pass-by-reference types termed \textbf{borrow} types.
 %
 %\end{frame}
 
-\section{Substructural Types and Medical Imaging}
+\section{Examples: Substructural Types and Medical Imaging}
 
 \begin{frame}
 \frametitle{Medical Imaging Software}
@@ -1189,8 +1187,8 @@ We'll briefly discuss how linear types are attractive for these sensitive
 tasks.
 
 \begin{itemize}
-    \item \textbf{session types} (require linear typing).
     \item Encoding our scanner as a linear resource.
+    \item \textbf{session types} (require linear typing).
 \end{itemize}
 \end{frame}
 
@@ -1204,6 +1202,8 @@ describing \textit{protocols}.
     \item A session type formalizes sequencing and order of a protocol in the
     type system.
     \item Often discussed in the context of channel-based communication.
+    \item Convert developer responsibility to compiler responsibility.
+    \item Little or no runtime cost.
 \end{itemize}
 
 \end{frame}
@@ -1216,6 +1216,12 @@ You can implement session types with:
     \item types and classes/traits (duality, sequencing)
     \item linear threading (linear types, indexed monads).
 \end{itemize}
+
+\pause
+
+\begin{center}
+  \includegraphics[width=0.75\textwidth]{figs/session_types_need_substructural.pdf}
+\end{center}
 
 \end{frame}
 
@@ -1237,11 +1243,6 @@ Some of the basic building block types:
 > data a :&: r -- Offer `r` or `s`
 > data Eps     -- Protocol is depleted
 
-Duality can be encoded using a type class with multiple parameters and
-functional dependencies that indicate bijectiveness:
-
-> class Dual r s | r -> s, s -> r 
-
 %if False
 
 > infixr 5 :!:
@@ -1261,13 +1262,10 @@ Communicating channels are implemented as dual session types:
 
 Why session types require linearity:
 
-> c :: Channel (Int :!: Eps)
->
 > data Channel a
-
-> func :: Channel (Int :!: Eps) -> Channel (Int :!: Eps) -> (Int, Int)
->
-> p = func c c -- `func` sends Int down both channels
+> c :: Channel (Int :!: Eps)
+> h :: Channel (Int :!: Eps) -> Channel (Int :!: Eps) -> (Int, Int)
+> p = h c c -- `h` sends Int down both channels
 
 Two |Int|s will be sent down the same channel, violating protocol.
 
