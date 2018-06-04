@@ -35,6 +35,10 @@
 > freeze :: MArray a ->. PL.Unrestricted (Array a)
 > freeze = undefined
 >
+> -- I think the paper made a boo-boo. The multiplicity polymorphism is
+> -- written as 
+> -- foldL :: (a ->p b ->q  a) -> a ->p [b] ->q a
+> -- but their second use of `q` is 1 instead of `ω` as it is for `write`.
 > foldlL :: (a ->. b ->. a) -> a ->. [b] ->. a
 > foldlL = undefined
 >
@@ -569,7 +573,7 @@ LinearTalk.lhs:447:10: error:
 To consume a variable exactly once, we use the following rules
 
 \begin{itemize}[<+->]
-  \item An atomic base type: evaluate the value once.
+  \item An atomic base type (|Int|, |Bool|, etc): evaluate the value once.
   \item A function: Pass in one argument and consume the result exactly
         once.
         \begin{itemize}[<+->]
