@@ -40,12 +40,19 @@
 > freeze = error "freeze not implemented"
 >
 
-It seems that the 
+It seems that the paper has two conflicting definitions of the linear
+|foldl|. In section 2.2 of the paper, it mentions that |foldl| has the type
+|(a ->. b ->. a) -> a ->. [b] ->. a|, although this same section seems to
+use an incompatible input parameter (|write|). In section 2.6, foldl is
+mentioned to have the type |(a :p-> b :q-> a) -> a :p-> [b] :q-> a|, which
+does work out with the |write| of section 2.2. Below is the definition of
+(with monomorphic multiplicity) |foldl| that seems to play nice with the
+type checker, which matches section 2.6.
 
 > foldlL :: (a ->. b -> a) -> a ->. [b] -> a
 > foldlL _ i [] = i
 > foldlL f i (x:xs) = foldlL f (f i x) xs
->
+
 > -- The actual function that guarantees arrays are written correctly.
 > array :: Int -> [(Int, a)] -> Array a
 > array size pairs = newMArray size (\ma -> freeze (foldlL write ma pairs))
@@ -680,6 +687,7 @@ This allows you to define functions like so
 
 %format SIR.RIO = "\Varid{IO}_L "
 %format SIR.run = "\Varid{run}_L "
+%format SIR.return = "\Varid{return}_L "
 
 %format File_L = "\Varid{File} "
 
@@ -806,7 +814,7 @@ We can now take a crack at our file example again.
 
 If we forget to close the file, the compiler tells us about this error.
 
-%format appendTimeToFile_L' = "\Varid{appendTimeToFile}_{L, \frownie}
+%format appendTimeToFile_L' = "\Varid{appendTimeToFile}_{L, \frownie} "
 
 %{
 
@@ -1389,7 +1397,9 @@ Two |Int|s will be sent down the same channel, violating protocol.
 
 %if False
 
-This code was for testing a potential bug 
+This code was for testing a potential bug in an older version of Linear
+Haskell. In the 0.1.6 docker container, |e| was considered a valid term even
+though the |d| term passed to |j| was not the correct type.
 
 < j :: (Int ->. Int) ->. Int ->. Int
 < j f = \x -> f x +. 1
