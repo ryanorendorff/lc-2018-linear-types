@@ -590,8 +590,8 @@ restrict what is passed to the function.
 \pause
 
 > f :: s ->. t
-> g :: s -> t
-> g x = f x
+> g :: s -> (t, t)
+> g x = (f x, x)
 
 %if False
 
