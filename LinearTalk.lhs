@@ -133,8 +133,6 @@ type checker, which matches section 2.6.
 %format _ (a)         = "_{" a "}"
 %format ω = "\omega"
 %format π = "\pi"
-%format ρ = "\rho"
-%format ⅋ = "\parr"
 
 %format +. = "+_{\!L} "
 %format -. = "-_{\!L} "
@@ -144,7 +142,7 @@ type checker, which matches section 2.6.
 %format f_1
 
 \author{Ryan~Orendorff, Daniel~Hensley}
-\title{Introduction to Linear Type Systems}
+\title{Practical Introduction to Substructural Type Systems}
 \subtitle{\verb|github.com/ryanorendorff/???????|}
 \date{June 5th, 2018}
 \hypersetup{pdflang={English}}
@@ -335,9 +333,9 @@ duplicated, and reordered. \cite{WalkerChapter:2005}
 The substructural rules are 
 
 \begin{itemize}
-  \item exchange
-  \item contraction
-  \item weakening.
+  \item Exchange,
+  \item Contraction, and
+  \item Weakening.
 \end{itemize}
 
 
@@ -774,9 +772,12 @@ And similarly |bind| is defined using linear arrows.
 
 \pause
 
-The linear bind continuation (|k :: a ->. IO b ->. IO b|) forces us to
-use the \emph{value linearly}, instead of relying on the linear arrow for
-linearity.
+The linear bind forces us to use the \emph{value linearly}, instead of
+relying on the linear arrow for linearity.
+
+% The linear bind continuation (|k :: (a ->. IO b) ->. IO b|) forces us to
+% use the \emph{value linearly}, instead of relying on the linear arrow for
+% linearity.
 
 %if False
 
