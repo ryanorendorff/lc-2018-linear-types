@@ -895,7 +895,7 @@ The Rust compiler establishes and tracks \textbf{ownership}.
     scope.
     \item This provides automatic memory safety without GC.
     \item It also means that you cannot forget to ``finalize'' these
-    resources (\textit{e.g}), files, sockets, etc.).
+    resources (\textit{e.g}, files, sockets, locks, etc.).
 \end{itemize}
 \end{frame}
 
@@ -967,15 +967,30 @@ Here we \mintinline{rust}{move} the file early.
 
 \end{frame}
 
+\begin{frame}[fragile]
+\frametitle{Linearly Threading (`move`) the File}
+\begin{minted}{rust}
+fn append_time(p: &Path, n: String) -> io::Result<()>
+{
+    let mut f = File::open(p)?;
+    let mut s = String::new();
+    let f_moved_back = process(f); // `f` moved back
+    f_moved_back.read_to_string(&mut s)?;
+    s.push_str(&n);
+    Ok(())
+}
+\end{minted}
+\end{frame}
+
 \begin{frame}
 \frametitle{Rust and Substructural Types}
-Like Linear Haskell, the Rust type system includes restricted types
-(affine) along with unrestricted types.
+Like Linear Haskell, the Rust type system supports both restricted types
+(affine) and unrestricted types.
 \begin{itemize}
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
     function arrow}.
     \item Rust's system is a pervasive \textit{ownership} type system that
-    includes \textbf{borrow} types.
+    includes \textit{borrow} types.
 \end{itemize}
 \end{frame}
 
@@ -1187,8 +1202,8 @@ We'll briefly discuss how linear types are attractive for these sensitive
 tasks.
 
 \begin{itemize}
-    \item Encoding our scanner as a linear resource.
     \item \textbf{session types} (require linear typing).
+    \item Encoding our scanner as a linear resource.
 \end{itemize}
 \end{frame}
 
@@ -1275,7 +1290,7 @@ Two |Int|s will be sent down the same channel, violating protocol.
 > s_dual = undefined
 > chan = undefined
 > c = undefined
-> func = undefined
+> h = undefined
 
 %endif 
 
