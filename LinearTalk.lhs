@@ -330,7 +330,7 @@ substructural types work.
 
 In most type systems, three structural properties that allow unrestricted
 use of a variable; unrestricted meaning variables can be dropped,
-duplicated, and reordered.
+duplicated, and reordered. \cite{WalkerChapter:2005}
 
 The substructural rules are 
 
@@ -339,6 +339,7 @@ The substructural rules are
   \item contraction
   \item weakening.
 \end{itemize}
+
 
 \end{frame}
 
@@ -431,6 +432,7 @@ Let's look at the most useful substructural systems.
 \begin{frame}{Unrestricted type systems are most common}
 
 You can use a variable as many times as you like, including zero.
+\cite{WalkerChapter:2005}
 
 This is the type system for Haskell, Java, C, etc.
 
@@ -444,6 +446,7 @@ This is the type system for Haskell, Java, C, etc.
 \begin{frame}{Relevant type systems: every variable used at least once}
 
 In relevant typing systems, a variable \emph{must be used}. 
+\cite{WalkerChapter:2005}
 
 Drops the weakening rule.
 
@@ -457,6 +460,7 @@ Drops the weakening rule.
 \begin{frame}{Affine type systems: every variable used at most once}
 
 A variable can be used zero or one times. Drops the contraction rule.
+\cite{WalkerChapter:2005}
 
 Example languages include Alms and Rust.
 
@@ -471,6 +475,7 @@ Example languages include Alms and Rust.
 
 A variable must be used \emph{exactly} once. Drops both the weakening and
 contraction rules.
+\cite{WalkerChapter:2005}
 
 This type system is implemented in the Linear Haskell extension.
 
@@ -484,6 +489,7 @@ This type system is implemented in the Linear Haskell extension.
 \begin{frame}{Ordered type systems: every variable must be used in order}
 
 All variables must be used and must be used in \textsc{filo} order.
+\cite{WalkerChapter:2005}
 
 Ordered type systems have none of the structural rules.
 
@@ -505,8 +511,8 @@ relate to each other.
 
 \pause 
 
-Remember, the use once property of linear type systems is what we wanted to
-handle resources in a type safe way.
+% Remember, the use once property of linear type systems is what we wanted to
+% handle resources in a type safe way.
 
 \end{frame}
 
@@ -520,7 +526,7 @@ handle resources in a type safe way.
 \begin{frame}{The |sum| function can be written linearly}
 
 Say we want to take the sum of a list. How do we check that we consumed every
-element exactly once?
+element exactly once? \cite{Bernardy:2017}
 \blfootnote{"|->.|" is represented as "\verb|->.|" in source code}
 
 \pause
@@ -683,7 +689,7 @@ This allows you to define functions like so
 \end{frame}
 
 
-\section{Motivation part 2: threading the file}
+\section{Motivation part 2: A (hopefully) better way}
 
 %format SIR.RIO = "\Varid{IO}_L "
 %format SIR.run = "\Varid{run}_L "
