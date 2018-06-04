@@ -850,8 +850,10 @@ LinearTalk.lhs:784:7: error:
 
 \begin{frame}
 \frametitle{Rust}
-  Rust is a ``mainstream'' language that ships with a substructural type
-  system.
+Rust is a ``mainstream'' language that ships with a
+substructural type system.\footnotemark
+
+\footnotetext{https://www.rust-lang.org}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -887,7 +889,8 @@ fn append_time(p: &Path, n: String) -> io::Result<()>
 \begin{frame}
 \frametitle{`drop` in Rust Ownership Type System}
 
-The Rust compiler establishes and tracks \textbf{ownership}.
+The Rust compiler establishes and tracks
+\textbf{ownership}.\footcites{clarke1998ownership,reed2015patina}
 
 \begin{itemize}
     \item The compiler automatically inserts calls to \mintinline{rust}{drop}
@@ -990,7 +993,7 @@ Like Linear Haskell, the Rust type system supports both restricted types
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
     function arrow}.
     \item Rust's system is a pervasive \textit{ownership} type system that
-    includes \textit{borrow} types.
+    includes \textit{borrow} types.\footcites{wadler1990linear,reed2015patina}
 \end{itemize}
 \end{frame}
 
@@ -1012,7 +1015,7 @@ to understand the goals of the Rust language.
 \frametitle{Flavor of Rust's Substructural Types}
 For Rust owned types, \textit{unrestricted} types obey \textbf{copy semantics}
 and the \textit{affine} types obey \textbf{move semantics} (all
-non-Copy types).
+non-Copy types).\footcite{jung2017rustbelt}
 
 \begin{itemize}
     \item Move types are \mintinline{rust}{move}d on use and associated
@@ -1069,6 +1072,7 @@ println!("Number: {}", n.0);
 \frametitle{References in Rust -- Borrow Types}
 Owned types alone can be limiting and inefficient.  As a low-level systems
 language, Rust provides pass-by-reference types termed \textbf{borrow} types.
+\footcites{jung2017rustbelt,fluet2006linear}
 
 \begin{minted}{rust}
 &'a T // Immutable borrow to T with lifetime `a`.
@@ -1168,6 +1172,7 @@ medical imaging scanners:
 \end{center}
 
 We build and operate large imaging scanners.
+\footcite{goodwill2011multidimenstional}
 
 \begin{itemize}
     \item Power large magnets and motors with ``pulse sequences'' to
@@ -1212,6 +1217,7 @@ tasks.
 
 Session types extend the notion of types from describing \textit{data} to
 describing \textit{protocols}.
+\footcites{pucella2008haskell,jespersen2015session}
 
 \begin{itemize}
     \item A session type formalizes sequencing and order of a protocol in the
@@ -1225,7 +1231,7 @@ describing \textit{protocols}.
 
 \begin{frame}
 \frametitle{Session Types}
-You can implement session types with:
+You can implement session types with:\footcite{pucella2008haskell}
 
 \begin{itemize}
     \item types and classes/traits (duality, sequencing)
