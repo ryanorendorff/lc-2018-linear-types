@@ -6,6 +6,9 @@
 > {-# LANGUAGE RebindableSyntax #-}
 > {-# LANGUAGE RecordWildCards #-}
 > {-# LANGUAGE TypeOperators #-}
+> {-# LANGUAGE MultiParamTypeClasses #-}
+> {-# LANGUAGE FunctionalDependencies #-}
+> {-# LANGUAGE OverloadedStrings #-}
 >
 > module LinearTalk where
 > import qualified Prelude.Linear as PL
@@ -15,54 +18,44 @@
 > import qualified System.IO as SI
 > import qualified System.IO.Resource as SIR
 > import Data.Text (Text, pack)
+> import Data.String (fromString)
 >
 > import Data.Time.Clock.POSIX
 
 
 > -- Linear Array interface taken from the paper
-> data MArray a 
-> data Array a
+> data MArray a = MArray
+> data Array a = Array
 
 > newMArray :: Int -> (MArray a ->. PL.Unrestricted b) ->. b
-> newMArray = undefined
+> newMArray = error "newMArray not implemented"
 >
 > write :: MArray a ->. (Int, a) -> MArray a
-> write = undefined
+> write = error "write not implemented"
 >
 > read :: MArray a ->. Int -> (MArray a, PL.Unrestricted a)
-> read = undefined
+> read = error "read not implemented"
 > 
 > freeze :: MArray a ->. PL.Unrestricted (Array a)
-> freeze = undefined
+> freeze = error "freeze not implemented"
 >
-> -- I think the paper made a boo-boo? The multiplicity polymorphism is
-> -- written as 
-> -- foldL :: (a ->p b ->q  a) -> a ->p [b] ->q a
-> -- but the `q` values don't match if you sub in `write`'s signature
-> -- this is however different from their presentation! T_T
-> foldlL :: (a ->. b ->. a) -> a ->. [b] ->. a
+
+It seems that the paper has two conflicting definitions of the linear
+|foldl|. In section 2.2 of the paper, it mentions that |foldl| has the type
+|(a ->. b ->. a) -> a ->. [b] ->. a|, although this same section seems to
+use an incompatible input parameter (|write|). In section 2.6, foldl is
+mentioned to have the type |(a :p-> b :q-> a) -> a :p-> [b] :q-> a|, which
+does work out with the |write| of section 2.2. Below is the definition of
+(with monomorphic multiplicity) |foldl| that seems to play nice with the
+type checker, which matches section 2.6.
+
+> foldlL :: (a ->. b -> a) -> a ->. [b] -> a
 > foldlL _ i [] = i
 > foldlL f i (x:xs) = foldlL f (f i x) xs
->
+
 > -- The actual function that guarantees arrays are written correctly.
 > array :: Int -> [(Int, a)] -> Array a
 > array size pairs = newMArray size (\ma -> freeze (foldlL write ma pairs))
-
-> j :: (Int ->. Int) ->. Int ->. Int
-> j f x = f x +. 1
-
-> d :: (Int -> Int)
-> d x = 3
-
-> e = j d
-
-> x :: (Int -> Int) ->. Int
-> x f = f 5
-
-> y :: (Int ->. Int)
-> y i = i
-
-> z = x y
 
 %endif
 
@@ -316,7 +309,7 @@ Linear types and Linear Haskell can help us guarantee a value is used once.
 < appendTimeToFile' path = do
 <     f <- openF path 
 <     n <- now
-<     f_1 <- appendF f n -- Note we 
+<     f_1 <- appendF f n 
 <     closeF f_1     
 
 \pause
@@ -337,7 +330,7 @@ substructural types work.
 
 In most type systems, three structural properties that allow unrestricted
 use of a variable; unrestricted meaning variables can be dropped,
-duplicated, and reordered.
+duplicated, and reordered. \cite{WalkerChapter:2005}
 
 The substructural rules are 
 
@@ -346,6 +339,7 @@ The substructural rules are
   \item contraction
   \item weakening.
 \end{itemize}
+
 
 \end{frame}
 
@@ -438,6 +432,7 @@ Let's look at the most useful substructural systems.
 \begin{frame}{Unrestricted type systems are most common}
 
 You can use a variable as many times as you like, including zero.
+\cite{WalkerChapter:2005}
 
 This is the type system for Haskell, Java, C, etc.
 
@@ -451,6 +446,7 @@ This is the type system for Haskell, Java, C, etc.
 \begin{frame}{Relevant type systems: every variable used at least once}
 
 In relevant typing systems, a variable \emph{must be used}. 
+\cite{WalkerChapter:2005}
 
 Drops the weakening rule.
 
@@ -464,6 +460,7 @@ Drops the weakening rule.
 \begin{frame}{Affine type systems: every variable used at most once}
 
 A variable can be used zero or one times. Drops the contraction rule.
+\cite{WalkerChapter:2005}
 
 Example languages include Alms and Rust.
 
@@ -478,6 +475,7 @@ Example languages include Alms and Rust.
 
 A variable must be used \emph{exactly} once. Drops both the weakening and
 contraction rules.
+\cite{WalkerChapter:2005}
 
 This type system is implemented in the Linear Haskell extension.
 
@@ -491,6 +489,7 @@ This type system is implemented in the Linear Haskell extension.
 \begin{frame}{Ordered type systems: every variable must be used in order}
 
 All variables must be used and must be used in \textsc{filo} order.
+\cite{WalkerChapter:2005}
 
 Ordered type systems have none of the structural rules.
 
@@ -512,8 +511,8 @@ relate to each other.
 
 \pause 
 
-Remember, the use once property of linear type systems is what we wanted to
-handle resources in a type safe way.
+% Remember, the use once property of linear type systems is what we wanted to
+% handle resources in a type safe way.
 
 \end{frame}
 
@@ -527,7 +526,7 @@ handle resources in a type safe way.
 \begin{frame}{The |sum| function can be written linearly}
 
 Say we want to take the sum of a list. How do we check that we consumed every
-element exactly once?
+element exactly once? \cite{Bernardy:2017}
 \blfootnote{"|->.|" is represented as "\verb|->.|" in source code}
 
 \pause
@@ -690,10 +689,11 @@ This allows you to define functions like so
 \end{frame}
 
 
-\section{Motivation part 2: threading the file}
+\section{Motivation part 2: A (hopefully) better way}
 
 %format SIR.RIO = "\Varid{IO}_L "
 %format SIR.run = "\Varid{run}_L "
+%format SIR.return = "\Varid{return}_L "
 
 %format File_L = "\Varid{File} "
 
@@ -820,6 +820,8 @@ We can now take a crack at our file example again.
 
 If we forget to close the file, the compiler tells us about this error.
 
+%format appendTimeToFile_L' = "\Varid{appendTimeToFile}_{L, \frownie} "
+
 %{
 
 %format do = "\mathrm{\mathbf{do}}_{L} "
@@ -827,6 +829,12 @@ If we forget to close the file, the compiler tells us about this error.
 %% This format is so that the syntax highlinting in my editor stays nice.
 
 %format `dollar` = $
+
+%if False
+
+> dollar = ($)
+
+%endif
 
 < appendTimeToFile_L' :: FilePath -> IO ()
 < appendTimeToFile_L' path = now P.>>= (\n -> SIR.run `dollar` do
@@ -836,8 +844,17 @@ If we forget to close the file, the compiler tells us about this error.
 
 %}
 
+%if False
+
+<     where
+<         -- The builder here is only for using @RebindableSyntax@ in this
+<         -- monad.
+<         SIR.Builder {..} = SIR.builder
+
+%endif
+
 \begin{Verbatim}[commandchars=\\\{\},codes={\catcode`$=3\catcode`^=7\catcode`_=8}]
-LinearTalk.lhs:784:7: error:
+LinearTalk.lhs:846:7: error:
     • \textcolor{red}{Couldn't match expected weight '1' of}
       \textcolor{red}{variable '$f_1$' with actual weight '0'}
 \end{Verbatim}
@@ -1389,5 +1406,29 @@ Two |Int|s will be sent down the same channel, violating protocol.
 
 
 \end{frame}
+
+%if False
+
+This code was for testing a potential bug in an older version of Linear
+Haskell. In the 0.1.6 docker container, |e| was considered a valid term even
+though the |d| term passed to |j| was not the correct type.
+
+< j :: (Int ->. Int) ->. Int ->. Int
+< j f = \x -> f x +. 1
+
+< d :: (Int -> Int)
+< d = \x -> 3
+
+< e = j d
+
+< x :: (Int -> Int) ->. Int
+< x f = f 5
+
+< y :: (Int ->. Int)
+< y i = i
+
+< z = x y
+
+%endif
 
 \end{document}
