@@ -26,40 +26,11 @@
 >
 > import Data.Time.Clock.POSIX
 
+To the reader of this source
 
-> -- Linear Array interface taken from the paper
-> data MArray a = MArray
-> data Array a = Array
-
-> newMArray :: Int -> (MArray a ->. PL.Unrestricted b) ->. b
-> newMArray = error "newMArray not implemented"
->
-> write :: MArray a ->. (Int, a) -> MArray a
-> write = error "write not implemented"
->
-> read :: MArray a ->. Int -> (MArray a, PL.Unrestricted a)
-> read = error "read not implemented"
-> 
-> freeze :: MArray a ->. PL.Unrestricted (Array a)
-> freeze = error "freeze not implemented"
->
-
-It seems that the paper has two conflicting definitions of the linear
-|foldl|. In section 2.2 of the paper, it mentions that |foldl| has the type
-|(a ->. b ->. a) -> a ->. [b] ->. a|, although this same section seems to
-use an incompatible input parameter (|write|). In section 2.6, foldl is
-mentioned to have the type |(a :p-> b :q-> a) -> a :p-> [b] :q-> a|, which
-does work out with the |write| of section 2.2. Below is the definition of
-(with monomorphic multiplicity) |foldl| that seems to play nice with the
-type checker, which matches section 2.6.
-
-> foldlL :: (a ->. b -> a) -> a ->. [b] -> a
-> foldlL _ i [] = i
-> foldlL f i (x:xs) = foldlL f (f i x) xs
-
-> -- The actual function that guarantees arrays are written correctly.
-> array :: Int -> [(Int, a)] -> Array a
-> array size pairs = newMArray size (\ma -> freeze (foldlL write ma pairs))
+1. You are a pretty cool person
+2. There are more examples and examples from the paper at the end of the
+   file
 
 %endif
 
@@ -146,7 +117,8 @@ type checker, which matches section 2.6.
 %format f_1
 
 \author{Ryan~Orendorff, Daniel~Hensley}
-\title{Practical Introduction to Substructural Type Systems}
+\title{Practical Introduction to Substructural Type Systems through
+       Linear Haskell and Rust}
 \subtitle{\verb|github.com/ryanorendorff/???????|}
 \date{June 5th, 2018}
 \hypersetup{pdflang={English}}
@@ -1354,65 +1326,19 @@ Two |Int|s will be sent down the same channel, violating protocol.
   Something about why linear types are cool, try it out, etc.
 \end{frame}
 
-\appendix
+% \appendix
 
-\begin{frame}
-
-> mkPair :: a ->. b ->. (a, b)
-> mkPair a b = (a, b)
-
-> data Color = Red | Green | Blue deriving (Show, Eq)
-> 
-> colorf :: Color ->. Color ->. Color
-> colorf  Red   q      =  q
-> colorf  p     Green  =  p
-> colorf  Blue  q      =  q
-
-
-> -- More general version of sum
-> combineL :: (Int ->. Int ->. Int) -> Int ->.  [Int] ->. Int
-> combineL _ idElem [] = idElem
-> combineL op idElem (x:xs) = x `op` combineL op idElem xs
-
-\end{frame}
-
-
-\begin{frame}
-
-
-> getLine :: File ->. SIR.RIO (Unrestricted Char, File)
 
 %if False
 
-> getLine = undefined
-
-%endif
-
-\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%             More examples/looking at the Tweag examples             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\begin{frame}
-
-> firstLine :: FilePath -> IO Text
-> firstLine filepath = SIR.run $ do
->     f <- SIR.openFile filepath SI.ReadMode
->     (line, f1) <- SIR.hGetLine f
->     SIR.hClose f1
->     SIR.return line
-
-%if False
-
->     where
->         -- The builder here is only for using @RebindableSyntax@ in this
->         -- monad.
->         SIR.Builder {..} = SIR.builder
-
-%endif
-
-
-\end{frame}
-
-%if False
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Old Linear Haskell (0.1.6 docker) bug?  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 This code was for testing a potential bug in an older version of Linear
 Haskell. In the 0.1.6 docker container, |e| was considered a valid term even
@@ -1433,6 +1359,90 @@ though the |d| term passed to |j| was not the correct type.
 < y i = i
 
 < z = x y
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Array example from the paper  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+> -- Linear Array interface taken from the paper
+> data MArray a = MArray
+> data Array a = Array
+
+> newMArray :: Int -> (MArray a ->. PL.Unrestricted b) ->. b
+> newMArray = error "newMArray not implemented"
+>
+> write :: MArray a ->. (Int, a) -> MArray a
+> write = error "write not implemented"
+>
+> read :: MArray a ->. Int -> (MArray a, PL.Unrestricted a)
+> read = error "read not implemented"
+> 
+> freeze :: MArray a ->. PL.Unrestricted (Array a)
+> freeze = error "freeze not implemented"
+
+It seems that the paper has two conflicting definitions of the linear
+|foldl|. In section 2.2 of the paper, it mentions that |foldl| has the type
+|(a ->. b ->. a) -> a ->. [b] ->. a|, although this same section seems to
+use an incompatible input parameter (|write|). In section 2.6, foldl is
+mentioned to have the type |(a :p-> b :q-> a) -> a :p-> [b] :q-> a|, which
+does work out with the |write| of section 2.2. Below is the definition of
+(with monomorphic multiplicity) |foldl| that seems to play nice with the
+type checker, which matches section 2.6.
+
+> foldlL :: (a ->. b -> a) -> a ->. [b] -> a
+> foldlL _ i [] = i
+> foldlL f i (x:xs) = foldlL f (f i x) xs
+
+> -- The actual function that guarantees arrays are written correctly.
+> array :: Int -> [(Int, a)] -> Array a
+> array size pairs = newMArray size (\ma -> freeze (foldlL write ma pairs))
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  firstLine example from the paper  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+> firstLine :: FilePath -> IO Text
+> firstLine filepath = SIR.run $ do
+>     f <- SIR.openFile filepath SI.ReadMode
+>     (line, f1) <- SIR.hGetLine f
+>     SIR.hClose f1
+>     SIR.return line
+>     where
+>         -- The builder here is only for using @RebindableSyntax@ in this
+>         -- monad.
+>         SIR.Builder {..} = SIR.builder
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Tweag Color example  %
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Here, we have a data type where evaluation simply means pattern matching
+or passing it through to consume.
+
+> data Color = Red | Green | Blue deriving (Show, Eq)
+> 
+> colorf :: Color ->. Color ->. Color
+> colorf  Red   q      =  q
+> colorf  p     Green  =  p
+> colorf  Blue  q      =  q
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  More general version of sumL on Ints  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This is a higher order version of |sumL|, which takes in 
+
+Should probably actually just do this with a fold. :-)
+
+> -- More general version of sum
+> combineL :: (Int ->. Int ->. Int) -> Int ->.  [Int] ->. Int
+> combineL _ idElem [] = idElem
+> combineL op idElem (x:xs) = x `op` combineL op idElem xs
+
 
 %endif
 
