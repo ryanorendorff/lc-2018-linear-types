@@ -1161,7 +1161,7 @@ We build and operate large imaging scanners.
 We believe many of the safety-critical aspects of our system can benefit from
 substructural typing constructs (as well as more FP).
 
-We'll discuss how \textbf{session types}, based on linear typing, are
+We'll briefly discuss how \textbf{session types}, based on linear typing, are
 attractive for some of these sensitive tasks.
 \end{frame}
 
@@ -1174,10 +1174,19 @@ describing \textit{protocols}.
 \begin{itemize}
     \item A session type formalizes sequencing and order of a protocol in the
     type system.
-    \item Implementing session types requires linear threading (most easily
-    implemented with linear/affine types).
     \item Often discussed in the context of channel-based communication where
     currently the developer is responsible for ensuring a protocol is obeyed.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Session Types}
+You can implement session types with:
+
+\begin{itemize}
+    \item type classes (sequence, duality)
+    \item linear threading (most easily implemented with linear/affine types).
 \end{itemize}
 
 \end{frame}
