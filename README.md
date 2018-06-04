@@ -1,6 +1,17 @@
 Introduction to Linear and Substructural Type Systems
 =====================================================
 
+An introductory talk to practical use linear and substructural type
+systems through Linear Haskell and Rust.
+
+All of the Linear Haskell commentary is describing
+the work by Tweag (more inforation can be found
+[here](https://github.com/tweag/ghc-proposals/blob/linear-types/proposals/00
+00-linear-types.rst)). Tweag also has documentation
+[about how to play around with their extension
+](https://github.com/tweag/ghc/tree/linear-types), including how to use it
+simply with docker.
+
 
 Running the code in the repo
 ----------------------------
@@ -11,13 +22,12 @@ The code in this presentation is
 2. Get the linear Haskell from the tweag docker repository:
 
     ```
-    docker pull tweag/linear-types@sha256:6f68b8e02c2cd9e495af7826a13cd7c98e6503f8fab7d93a495d2b1676e9f336
+    docker pull tweag/linear-types:0.1.8
     ```
 
    This code is only tested against this specific version of linear Haskell.
 
-3. Initialize the submodules `git submodule update --init`
-4. All the normal stack commands can be used. For example, to drop
+3. All the normal stack commands can be used. For example, to drop
    down into a linear Haskell REPL, use `stack ghci`. Note that the linear
    extension is always on in this branch of GHC.
 
