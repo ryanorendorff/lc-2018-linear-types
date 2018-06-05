@@ -122,7 +122,7 @@ To the reader of this source
 \author{Ryan~Orendorff, Daniel~Hensley}
 \title{Practical Introduction to Substructural Type Systems through
        Linear Haskell and Rust}
-\subtitle{\verb|github.com/ryanorendorff/???????|}
+\subtitle{\verb|github.com/ryanorendorff/lc-2018-linear-types|}
 \date{June 5th, 2018}
 \hypersetup{pdflang={English}}
 
@@ -359,14 +359,14 @@ We can check that |x| or |y| are |Int|s in either order.
 \pause
 
 Restricting this property means that we have to type check terms \emph{in
-the opposite order they were introduced} (a \textsc{filo} order).
+a stack order} (a \textsc{filo} order).
 
 \end{frame}
 
 
 \begin{frame}{Contraction: we can make duplicates of type proofs}
 
-The contraction rule lets us use a proof of a variable's type twice.
+The contraction rule lets us use a variable twice in a type safe way.
 
 % \begin{equation*}
 %   Γ, x:A, x:A ⊢  t:T \text{, then } Γ, x:A ⊢  t:T
@@ -429,7 +429,7 @@ Let's look at the most useful substructural systems.
 You can use a variable as many times as you like, including zero.
 \cite{WalkerChapter:2005}
 
-This is the type system for Haskell, Java, C, etc.
+This is the type system for Haskell, etc.
 
 \begin{center}
   \includegraphics[width=\textwidth]{figs/unrestricted.pdf}
