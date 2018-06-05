@@ -1335,11 +1335,10 @@ Two |Int|s will be sent down the same channel, violating protocol.
 
 \begin{itemize}
     \item Encoding of proper hardware boot up/shutdown sequences.
-    \item Communication protocol between our real-time system (directly
-    plays pulse sequences to hardware) and control computer.
-    \item Protocol for dynamic pulse sequence modification based on real-time
-    feedback.
-    \item Pulse sequence generation API tool.
+    \item Communication protocol between our real-time system and
+    control computer.
+    \item User-defined protocols for safe, dynamic scanner state modification 
+    based on real-time feedback.
 \end{itemize}
 
 \end{frame}
