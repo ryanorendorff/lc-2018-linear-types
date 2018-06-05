@@ -441,7 +441,6 @@ This is the type system for Haskell, etc.
 \begin{frame}{Relevant type systems: every variable used at least once}
 
 In relevant typing systems, a variable \emph{must be used}. 
-\footcite{WalkerChapter:2005}
 
 Drops the weakening rule.
 
