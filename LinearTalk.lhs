@@ -884,7 +884,7 @@ fn append_time(p: &Path, n: String) -> io::Result<()>
 \frametitle{`drop` in Rust Ownership Type System}
 
 The Rust compiler establishes and tracks
-\textbf{ownership}.\footcites{clarke1998ownership,reed2015patina}
+\textbf{ownership}.\footcite{clarke1998ownership}$^,$\footcite{reed2015patina}
 
 \begin{itemize}
     \item The compiler automatically inserts calls to \mintinline{rust}{drop}
@@ -892,7 +892,7 @@ The Rust compiler establishes and tracks
     scope.
     \item This provides automatic memory safety without GC.
     \item It also means that you cannot forget to ``finalize'' these
-    resources (\textit{e.g}, files, sockets, locks, etc.).
+    resources (\textit{e.g}, files, sockets, data locks, etc.).
 \end{itemize}
 \end{frame}
 
@@ -967,11 +967,13 @@ Here we \mintinline{rust}{move} the file early.
 \begin{frame}[fragile]
 \frametitle{Linearly Threading (`move`) the File}
 \begin{minted}{rust}
+fn process(f: File) -> File { /* do stuff */ f }
+
 fn append_time(p: &Path, n: String) -> io::Result<()>
 {
-    let mut f = File::open(p)?;
+    let f = File::open(p)?;
     let mut s = String::new();
-    let f_moved_back = process(f); // `f` moved back
+    let mut f_moved_back = process(f); // `f` moved back
     f_moved_back.read_to_string(&mut s)?;
     s.push_str(&n);
     Ok(())
@@ -987,7 +989,8 @@ Like Linear Haskell, the Rust type system supports both restricted types
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
     function arrow}.
     \item Rust's system is a pervasive \textit{ownership} type system that
-    includes \textit{borrow} types.\footcites{wadler1990linear,reed2015patina}
+    includes \textit{borrow} types.\footcite{wadler1990linear}$^,$
+    \footcite{reed2015patina}
 \end{itemize}
 \end{frame}
 
@@ -1066,7 +1069,7 @@ println!("Number: {}", n.0);
 \frametitle{References in Rust -- Borrow Types}
 Owned types alone can be limiting and inefficient.  As a low-level systems
 language, Rust provides pass-by-reference types termed \textbf{borrow} types.
-\footcites{jung2017rustbelt,fluet2006linear}
+\footcite{jung2017rustbelt}$^,$\footcite{fluet2006linear}
 
 \begin{minted}{rust}
 &'a T // Immutable borrow to T with lifetime `a`.
@@ -1201,7 +1204,7 @@ We'll briefly discuss how linear types are attractive for these sensitive
 tasks.
 
 \begin{itemize}
-    \item \textbf{session types} (require linear typing).
+    \item \textbf{session types} (require linear threading).
     \item Encoding our scanner as a linear resource.
 \end{itemize}
 \end{frame}
@@ -1211,7 +1214,7 @@ tasks.
 
 Session types extend the notion of types from describing \textit{data} to
 describing \textit{protocols}.
-\footcites{pucella2008haskell,jespersen2015session}
+\footcite{pucella2008haskell}$^,$\footcite{jespersen2015session}
 
 \begin{itemize}
     \item A session type formalizes sequencing and order of a protocol in the
