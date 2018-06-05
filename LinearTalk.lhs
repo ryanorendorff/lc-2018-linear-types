@@ -9,6 +9,8 @@
 > {-# LANGUAGE MultiParamTypeClasses  #-}
 > {-# LANGUAGE FunctionalDependencies #-}
 > {-# LANGUAGE OverloadedStrings      #-}
+> {-# LANGUAGE KindSignatures         #-}
+> {-# LANGUAGE DataKinds              #-}
 >
 > module LinearTalk where
 > 
@@ -19,6 +21,7 @@
 > import Num
 >
 > import qualified System.IO as SI
+> import qualified System.IO.Linear as SIL
 > import qualified System.IO.Resource as SIR
 >
 > import Data.Text (Text, pack)
@@ -134,6 +137,10 @@ To the reader of this source
 \tableofcontents[]
 \end{frame}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                             Motivation                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % For the first section, do not highlight the current section (overview slide)
 \AtBeginSection[] {}
 \section{Motivation: Properly handling a resource}
@@ -508,7 +515,6 @@ relate to each other.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %               Linear Types by Linear Haskell Section                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{Overview of Linear Types through Linear Haskell}
 
 \begin{frame}{The |sum| function can be written linearly}
@@ -677,6 +683,9 @@ This allows you to define functions like so
 \end{frame}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                      Motivation, but linearly!                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Motivation part 2: A (hopefully) better way}
 
 %format SIR.RIO = "\Varid{IO}_L "
@@ -853,7 +862,9 @@ LinearTalk.lhs:846:7: error:
 
 \end{frame}
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%              Rust and how it uses substructural typing              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Rust}
 
 \begin{frame}
@@ -1108,61 +1119,10 @@ As a low-level systems language, Rust provides pass-by-reference types termed
 \end{center}
 \end{frame}
 
-%\begin{frame}
-%\frametitle{Affine or Linear?}
-%Are those restricted types in Rust affine or linear?
-%
-%\begin{itemize}
-%    \item \mintinline{rust}{move} semantics ensure a resource is
-%    used \textit{at most once}.
-%    \item But it is not required to be \textbf{explicitly} used
-%    \textit{at least} once.
-%    \item However, because of ownership tracking, the Rust compiler manually
-%    inserts \mintinline{rust}{drop} (deallocation calls) at compile time.
-%\end{itemize}
-%
-%So which is it in the end? Do implicit \mintinline{rust}{drop}s constitute
-%linearity?
-%\end{frame}
 
-%\begin{frame}
-%\frametitle{What do Affine Types Provide in Rust?}
-%
-%Substructural typing is at the core of Rust's ownership type system. They
-%are, along with \mintinline{rust}{borrowck}, what allow Rust to provide
-%powerful static guarantees.
-%
-%\begin{itemize}
-%    \item Automatic memory management without a GC.
-%    \item Statically ensure memory and thread safety.
-%    \item Statically ensure proper management (finalization) of resources
-%    (\textit{e.g.}, sockets, files, mutexes).
-%    \item Building block for other abstractions (session types).
-%\end{itemize}
-%
-%\end{frame}
-%
-%\begin{frame}
-%\frametitle{Tradeoffs with Rust's Ownership Type System}
-%\begin{itemize}
-%    \item Strictly less flexible (expressive) than say C/C++.
-%    \item Some (\textit{e.g.}, self-referential) data structures are not
-%    possible.
-%    \item Safe code may be less efficient.
-%\end{itemize}
-%
-%\pause
-%
-%... but Rust provides some escape hatches:
-%
-%\begin{itemize}
-%    \item \mintinline{rust}{Arc} and \mintinline{rust}{Rc} reference
-%    counting types for shared ownership that bypass \mintinline{rust}{move}.
-%    \item \mintinline{rust}{unsafe} blocks.
-%\end{itemize}
-%
-%\end{frame}
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%            Magnetic Particle Imaging linearity examples             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Examples: Substructural Types and Medical Imaging}
 
 \begin{frame}
@@ -1176,26 +1136,6 @@ medical imaging scanners:
     \item Monitor and respond to hardware sensors.
     \item We must ensure patient safety and hardware integrity.
 \end{itemize}
-
-\end{frame}
-
-
-\begin{frame}{We like big magnets with lots of POWER!!!}
-
-Ryan and I work in Magnetic Particle Imaging
-
-\begin{center}
-  \includegraphics{figs/mpi.png}
-\end{center}
-
-\end{frame}
-
-
-\begin{frame}{We like big magnets with even more POWER!!!}
-
-\begin{center}
-  \includegraphics{figs/mpi_john.png}
-\end{center}
 
 \end{frame}
 
@@ -1316,6 +1256,86 @@ Two |Int|s will be sent down the same channel, violating protocol.
 > h = undefined
 
 %endif 
+\end{frame}
+
+
+\begin{frame}{We like big magnets with even more POWER!!!}
+
+\begin{center}
+  \includegraphics{figs/mpi.png}
+\end{center}
+
+\end{frame}
+
+
+\begin{frame}{We like big magnets with even more POWER!!!}
+
+\begin{center}
+  \includegraphics{figs/mpi_john.png}
+\end{center}
+
+\end{frame}
+
+
+\begin{frame}{Safe, \emph{user programmable} scanner use}
+
+%format SIL.IO = SIR.RIO
+%format SIL.return = SIR.return
+
+> -- Definition of scanner
+> data State = Setup | Scanning
+> data Scanner (s :: State)
+>
+> data Parameters
+
+\novspacepause
+
+> scanner :: SIL.IO (Scanner Setup)
+> setParameters  ::   Scanner Setup ->.  [Parameters] 
+>                ->.  SIL.IO (Scanner Setup)
+
+\novspacepause
+
+> verifyAndStart :: Scanner Setup ->. SIL.IO (Scanner Scanning)
+
+\novspacepause
+
+> getData  ::  Scanner Scanning  ->. 
+>              SIL.IO (Scanner Scanning, PL.Unrestricted [Float])
+
+\novspacepause
+
+> scannerOff :: forall s. Scanner s ->. SIL.IO ()
+
+%if False
+
+> scanner       = error "scanner not defined"
+> setParameters = error "setParameters not defined"
+> verifyAndStart        = error "verifyAndStart not defined"
+> runScan       = error "runScan not defined"
+> getData       = error "getData not defined"
+> scannerOff    = error "scannerOff not defined"
+
+> userDefinedScan :: [Parameters] -> IO ()
+> userDefinedScan ps = SIL.withLinearIO $ do
+>     s <- scanner
+>     s <- setParameters s ps
+>     s <- verifyAndStart s
+>     (s, PL.Unrestricted raw_data) <- getData s
+>     scannerOff s
+>     SIL.return (PL.Unrestricted ())
+
+%if False
+
+>     where
+>         -- The builder here is only for using @RebindableSyntax@ in this
+>         -- monad.
+>         SIL.Builder {..} = SIL.builder
+
+%endif
+
+%endif
+
 \end{frame}
 
 
