@@ -1194,26 +1194,11 @@ medical imaging scanners:
 
 \end{frame}
 
-%\begin{frame}
-%\frametitle{Important Software-Related Tasks}
-%
-%\begin{itemize}
-%    \item Pulse sequences designed and validated in software (control high
-%    currents and power -- handle with care!).
-%    \item Communication of data between real-time system directly 
-%    controlling the magnets and ``control'' computer.
-%    \item Hardware boot up/enable and shutdown sequences.
-%    \item Monitoring system hardware (sensors) and taking appropriate
-%    actions for invalid conditions.
-%    \item Higher level routing of scanner, as a resource, in an
-%    asynchronous task management system.
-%\end{itemize}
-%\end{frame}
 
-\begin{frame}
-\frametitle{Examples of how We Might Leverage Linear Types}
-We believe many of the safety-critical aspects of our system can benefit from
-substructural typing constructs (as well as more FP).
+\begin{frame}{Examples of how We Might Leverage Linear Types}
+
+We believe many of the safety-critical aspects of our system can benefit
+from substructural typing constructs (as well as more FP).
 
 We'll briefly discuss how linear types are attractive for these sensitive
 tasks.
@@ -1260,8 +1245,7 @@ You can implement session types with:\footcite{pucella2008haskell}$^,$
 \end{frame}
 
 
-\begin{frame}
-\frametitle{Session Types}
+\begin{frame}{Session Types}
 
 %format :!: = "\ :\mkern2mu !\mkern-3mu: \  "
 %format :?: = "\ :\mkern-4mu ?\mkern-5mu: \  "
@@ -1288,8 +1272,7 @@ Some of the basic building block types used in a 2008 Haskell paper:
 
 \end{frame}
 
-\begin{frame}
-\frametitle{Session Types}
+\begin{frame}{Session types could benefit from some linearity}
 
 %format s_dual = "\overline{\Varid{" s "}} "
 Communicating channels can be implemented as dual session types:
@@ -1329,17 +1312,8 @@ Two |Int|s will be sent down the same channel, violating protocol.
 %endif 
 \end{frame}
 
-%\begin{frame}
-%
-%Standard communication protocols are not the only use for session types.
-%
-%Session types could be very helpful to statically guarantee proper
-%hardware-software interactions in our system.
-%
-%\end{frame}
 
-\begin{frame}
-\frametitle{Possible Applications for Us}
+\begin{frame}{Possible Applications for Us}
 
 \begin{itemize}
     \item Encoding of proper hardware boot up/shutdown sequences.
@@ -1351,14 +1325,18 @@ Two |Int|s will be sent down the same channel, violating protocol.
 
 \end{frame}
 
-\section{Conclusion}
 
-\begin{frame}
-\frametitle{Conclusion}
-  Something about why linear types are cool, try it out, etc.
+\begin{frame}{Conclusion}
+
+Substructural types allow us to make stronger guarantees about
+
+\begin{enumerate}
+  \item correct resource usage,
+  \item correct interfaces between two systems, and
+  \item potentially has medical applications.
+\end{enumerate}
+
 \end{frame}
-
-% \appendix
 
 
 %if False
