@@ -30,7 +30,7 @@ To the reader of this source
 
 1. You are a pretty cool person
 2. There are more examples and examples from the paper at the end of the
-   file
+   file, many of which are from the Linear Haskell paper.
 
 %endif
 
@@ -147,6 +147,21 @@ To the reader of this source
   \end{frame}
 }
 
+
+\begin{frame}{What can substructural types do for us?}
+
+In this talk we will be using substructurally typed languages, which can be
+used for 
+
+\begin{enumerate}
+  \item guaranteed use of a value (ex: guaranteeding a list is only permuted),
+  \item safe channel communication, and
+  \item safe handling of a resource.
+\end{enumerate}
+
+\end{frame}
+
+
 \begin{frame}{Opening a file is pretty easy in any programming language}
 
 Let's say we have the following \textsc{api} for accessing a resource (files).
@@ -184,7 +199,6 @@ and we can get the current time as a string.
 > appendF = undefined
 > closeF  = undefined
 > now     = (pack . show . round) `fmap` getPOSIXTime 
-> {-# NOINLINE now #-}
 
 %endif
 
@@ -236,7 +250,7 @@ What if we made a mistake and closed the file. Does the result still typecheck?
 \pause
 
 \emph{The developer is responsible} for a property that the compiler does
-not check for.
+not check for (but ideally it should!).
 
 \end{frame}
 
@@ -590,7 +604,7 @@ restrict what is passed to the function.
 \pause
 
 > f :: s ->. t
-> g :: s -> (t, t)
+> g :: s -> (t, s)
 > g x = (f x, x)
 
 %if False
@@ -1162,21 +1176,22 @@ medical imaging scanners:
 
 \end{frame}
 
-\begin{frame}
-\frametitle{Applications in Our Work at Magnetic Insight}
+
+\begin{frame}{We like big magnets with even more POWER!!!}
+
 \begin{center}
-  \includegraphics[width=0.8\textwidth]{figs/mpi_pulse_sequences.png}
+  \includegraphics{figs/mpi.png}
 \end{center}
 
-We build and operate large imaging scanners.
-\footcite{goodwill2011multidimenstional}
+\end{frame}
 
-\begin{itemize}
-    \item Power large magnets and motors with ``pulse sequences'' to
-    take scans and acquire data.
-    \item We then reconstruct images from 1 or more scans per our governing
-    physics.
-\end{itemize}
+
+\begin{frame}{We like big magnets with even more POWER!!!}
+
+\begin{center}
+  \includegraphics{figs/mpi_john.png}
+\end{center}
+
 \end{frame}
 
 %\begin{frame}
@@ -1290,11 +1305,18 @@ Communicating channels can be implemented as dual session types:
 Why session types require linearity:
 
 > data Channel a
-> c :: Channel (Int :!: Eps)
 > h :: Channel (Int :!: Eps) -> Channel (Int :!: Eps) -> (Int, Int)
-> p = h c c -- `h` sends Int down both channels
+> p :: Channel (Int :!: Eps) -> (Int, Int)
+> p c = h c c -- `h` sends Int down both channels
 
 Two |Int|s will be sent down the same channel, violating protocol.
+
+\pause 
+
+%format p_L
+
+< p_L :: Channel (Int :!: Eps) ->. (Int, Int)
+< p_L c = h c c -- c has weight $\omega$, oops!
 
 %if False
 
@@ -1321,10 +1343,10 @@ Two |Int|s will be sent down the same channel, violating protocol.
 
 \begin{itemize}
     \item Encoding of proper hardware boot up/shutdown sequences.
-    \item Communication protocol between our real-time system (directly
-    plays pulse sequences to hardware) and control computer.
-    \item Protocol for dynamic pulse sequence modification based on real-time
-    feedback.
+    \item Communication protocol between our real-time system and
+    control computer.
+    \item User-defined protocols for safe, dynamic scanner state modification 
+    based on real-time feedback.
 \end{itemize}
 
 \end{frame}
