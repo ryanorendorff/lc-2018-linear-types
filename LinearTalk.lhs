@@ -39,7 +39,7 @@ To the reader of this source
 
 \documentclass{beamer}
 
-\usepackage[backend=biber,citestyle=authoryear,style=alphabetic]{biblatex}
+\usepackage[backend=biber,citestyle=authoryear,style=authoryear]{biblatex}
 \bibliography{bib.bib}
 
 
@@ -325,7 +325,7 @@ substructural types work.
 
 In most type systems, three structural properties that allow unrestricted
 use of a variable; unrestricted meaning variables can be dropped,
-duplicated, and reordered. \cite{WalkerChapter:2005}
+duplicated, and reordered. \footcite{WalkerChapter:2005}
 
 The substructural rules are 
 
@@ -427,7 +427,7 @@ Let's look at the most useful substructural systems.
 \begin{frame}{Unrestricted type systems are most common}
 
 You can use a variable as many times as you like, including zero.
-\cite{WalkerChapter:2005}
+\footcite{WalkerChapter:2005}
 
 This is the type system for Haskell, etc.
 
@@ -441,7 +441,7 @@ This is the type system for Haskell, etc.
 \begin{frame}{Relevant type systems: every variable used at least once}
 
 In relevant typing systems, a variable \emph{must be used}. 
-\cite{WalkerChapter:2005}
+\footcite{WalkerChapter:2005}
 
 Drops the weakening rule.
 
@@ -455,7 +455,7 @@ Drops the weakening rule.
 \begin{frame}{Affine type systems: every variable used at most once}
 
 A variable can be used zero or one times. Drops the contraction rule.
-\cite{WalkerChapter:2005}
+\footcite{WalkerChapter:2005}
 
 Example languages include Alms and Rust.
 
@@ -470,7 +470,7 @@ Example languages include Alms and Rust.
 
 A variable must be used \emph{exactly} once. Drops both the weakening and
 contraction rules.
-\cite{WalkerChapter:2005}
+\footcite{WalkerChapter:2005}
 
 This type system is implemented in the Linear Haskell extension.
 
@@ -484,7 +484,7 @@ This type system is implemented in the Linear Haskell extension.
 \begin{frame}{Ordered type systems: every variable must be used in order}
 
 All variables must be used and must be used in \textsc{filo} order.
-\cite{WalkerChapter:2005}
+\footcite{WalkerChapter:2005}
 
 Ordered type systems have none of the structural rules.
 
@@ -520,7 +520,7 @@ relate to each other.
 \begin{frame}{The |sum| function can be written linearly}
 
 Say we want to take the sum of a list. How do we check that we consumed every
-element exactly once? \cite{Bernardy:2017}
+element exactly once? \footcite{Bernardy:2017}
 \blfootnote{"|->.|" is represented as "\verb|->.|" in source code}
 
 \pause
