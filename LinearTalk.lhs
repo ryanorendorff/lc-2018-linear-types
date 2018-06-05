@@ -989,7 +989,7 @@ Like Linear Haskell, the Rust type system supports both restricted types
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
     function arrow}.
     \item Rust's system is a pervasive \textit{ownership} type system that
-    includes \textit{borrow} types.\footcite{wadler1990linear}$^,$
+    also includes \textit{borrow} types.\footcite{clarke1998ownership}$^,$
     \footcite{reed2015patina}
 \end{itemize}
 \end{frame}
@@ -1028,7 +1028,7 @@ non-Copy types).\footcite{jung2017rustbelt}
 \frametitle{Affine types with `move` Semantics}
 \begin{minted}{rust}
 // Custom types are affine by default.
-struct AffineInt(i32);
+struct AffineInt(i32); // Rust `newtype` idiom.
 fn take<T>(n: T) { }
 
 let n = AffineInt(1);
@@ -1228,7 +1228,8 @@ describing \textit{protocols}.
 
 \begin{frame}
 \frametitle{Session Types}
-You can implement session types with:\footcite{pucella2008haskell}
+You can implement session types with:\footcite{pucella2008haskell}$^,$
+\footcite{jespersen2015session}
 
 \begin{itemize}
     \item types and classes/traits (duality, sequencing)
@@ -1251,14 +1252,16 @@ You can implement session types with:\footcite{pucella2008haskell}
 %format :?: = "\ :\mkern-4mu ?\mkern-5mu: \  "
 %format :+: = "\ :\mkern-2mu +\mkern-2mu: \  "
 %format :&: = "\ :\mkern-2mu \&\mkern-2mu: \  "
-%format s_dual = "\overline{\Varid{" s "}} "
 
-Some of the basic building block types:
+Some of the basic building block types used in a 2008 Haskell paper:
+\footcite{pucella2008haskell}
 
-> data a :!: r -- tx `a` then continue with `r`
-> data a :?: r -- rx `a` then continue with `r`
+> data a :!: r -- send `a` then continue with `r`
+> data a :?: r -- receive `a` then continue with `r`
+
 > data a :+: r -- Choose `r` or `s`
 > data a :&: r -- Offer `r` or `s`
+
 > data Eps     -- Protocol is depleted
 
 %if False
@@ -1273,10 +1276,16 @@ Some of the basic building block types:
 \begin{frame}
 \frametitle{Session Types}
 
-Communicating channels are implemented as dual session types:
+%format s_dual = "\overline{\Varid{" s "}} "
+Communicating channels can be implemented as dual session types:
 
 > s :: Int :!: Bool :?: Eps -- Channel 1
 > s_dual :: Int :?: Bool :!: Eps -- Channel 2
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Session Types}
 
 Why session types require linearity:
 
@@ -1296,7 +1305,6 @@ Two |Int|s will be sent down the same channel, violating protocol.
 > h = undefined
 
 %endif 
-
 \end{frame}
 
 %\begin{frame}
@@ -1317,7 +1325,6 @@ Two |Int|s will be sent down the same channel, violating protocol.
     plays pulse sequences to hardware) and control computer.
     \item Protocol for dynamic pulse sequence modification based on real-time
     feedback.
-    \item Pulse sequence generation API tool.
 \end{itemize}
 
 \end{frame}
