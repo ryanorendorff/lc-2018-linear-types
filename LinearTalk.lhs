@@ -1081,8 +1081,8 @@ println!("Number: {}", n.0);
 
 \begin{frame}[fragile]
 \frametitle{References in Rust -- Borrow Types}
-Owned types alone can be limiting and inefficient.  As a low-level systems
-language, Rust provides pass-by-reference types termed \textbf{borrow} types.
+As a low-level systems language, Rust provides pass-by-reference types termed
+\textbf{borrow} types.
 \footcite{jung2017rustbelt}$^,$\footcite{fluet2006linear}
 
 \begin{minted}{rust}
@@ -1177,7 +1177,9 @@ medical imaging scanners:
 \end{frame}
 
 
-\begin{frame}{We like big magnets with even more POWER!!!}
+\begin{frame}{We like big magnets with lots of POWER!!!}
+
+Ryan and I work in Magnetic Particle Imaging
 
 \begin{center}
   \includegraphics{figs/mpi.png}
