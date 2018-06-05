@@ -32,3 +32,6 @@ TAGS
 
 # Editor files
 *.swp
+
+# Don't want to include the sauce
+*.ai
