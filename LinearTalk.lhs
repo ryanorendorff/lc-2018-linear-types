@@ -1329,49 +1329,6 @@ Two |Int|s will be sent down the same channel, violating protocol.
 \end{frame}
 
 
-\begin{frame}{Possible Applications for Us}
-
-\begin{itemize}
-    \item Encoding of proper hardware boot up/shutdown sequences.
-    \item Communication protocol between our real-time system and
-    control computer.
-    \item User-defined protocols for safe, dynamic scanner state modification 
-    based on real-time feedback.
-\end{itemize}
-
-\end{frame}
-
-
-\begin{frame}{Conclusion}
-
-Substructural types allow us to make stronger guarantees about
-
-\begin{enumerate}
-  \item correct resource usage,
-  \item correct interfaces between two systems, and
-  \item potentially has medical applications.
-\end{enumerate}
-
-\end{frame}
-
-
-\begin{frame}{Thank you for listening!}
-
-\begin{center}
-  \includegraphics[width=\textwidth]{figs/question.jpg}
-\end{center}
-
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                              Appendix                               %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\appendix
-
-\begin{frame}{}
-\end{frame}
-
-
 \begin{frame}{Scanner resource example implementation}
 
 For the scanner, we can write a program that allows users to take a scan.
@@ -1431,6 +1388,50 @@ state more than once.
 %}
 
 \end{frame}
+
+
+\begin{frame}{Possible Applications for Us}
+
+\begin{itemize}
+    \item Encoding of proper hardware boot up/shutdown sequences.
+    \item Communication protocol between our real-time system and
+    control computer.
+    \item User-defined protocols for safe, dynamic scanner state modification 
+    based on real-time feedback.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Conclusion}
+
+Substructural types allow us to make stronger guarantees about
+
+\begin{enumerate}
+  \item correct resource usage,
+  \item correct interfaces between two systems, and
+  \item potentially has medical applications.
+\end{enumerate}
+
+\end{frame}
+
+
+\begin{frame}{Thank you for listening!}
+
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/question.jpg}
+\end{center}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              Appendix                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+
+\begin{frame}{}
+\end{frame}
+
 
 %if False
 
