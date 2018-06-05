@@ -1412,7 +1412,7 @@ For the scanner, we can write a program that allows users to take a scan.
 If we try to write new parameters, these is an error in using the pre-scan
 state more than once.
 
-%format s_p
+%format s_p = "\textcolor{red}{\Varid{s}_{p}} "
 %format userDefinedScan' = "\Varid{userDefinedScan}_{\frownie} "
 
 < userDefinedScan' :: [Parameters] -> IO ()
