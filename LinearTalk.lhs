@@ -455,7 +455,6 @@ Drops the weakening rule.
 \begin{frame}{Affine type systems: every variable used at most once}
 
 A variable can be used zero or one times. Drops the contraction rule.
-\footcite{WalkerChapter:2005}
 
 Example languages include Alms and Rust.
 
@@ -470,7 +469,6 @@ Example languages include Alms and Rust.
 
 A variable must be used \emph{exactly} once. Drops both the weakening and
 contraction rules.
-\footcite{WalkerChapter:2005}
 
 This type system is implemented in the Linear Haskell extension.
 
@@ -484,7 +482,6 @@ This type system is implemented in the Linear Haskell extension.
 \begin{frame}{Ordered type systems: every variable must be used in order}
 
 All variables must be used and must be used in \textsc{filo} order.
-\footcite{WalkerChapter:2005}
 
 Ordered type systems have none of the structural rules.
 
