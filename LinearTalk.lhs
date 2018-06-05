@@ -1009,8 +1009,8 @@ fn append_time(p: &Path, n: String) -> io::Result<()>
 \begin{frame}
 \frametitle{Rust and Substructural Types}
 Like Linear Haskell, the Rust type system supports both restricted types
-(affine \footnote{linear types partially supported with implicit
-\mintinline{rust}{drop}}) and unrestricted types.
+(affine\footnote{linear types partially supported with compiler-inserted 
+\mintinline{rust}{drop}s}) and unrestricted types.
 \begin{itemize}
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
     function arrow}.
@@ -1025,7 +1025,7 @@ Like Linear Haskell, the Rust type system supports both restricted types
 \begin{frame}
 \frametitle{Factors Influencing Rust's Implementation}
 To understand Rust's substructural type system implementation, it is helpful
-to understand the goals of the Rust language.
+to understand some of the goals of the Rust language.
 
 \begin{itemize}
     \item Enable low-level systems programming.
@@ -1039,8 +1039,8 @@ to understand the goals of the Rust language.
 \begin{frame}
 \frametitle{Flavor of Rust's Substructural Types}
 For Rust owned types, \textit{unrestricted} types obey \textbf{copy semantics}
-and the \textit{affine} types obey \textbf{move semantics} (all
-non-Copy types).\footcite{jung2017rustbelt}
+and the \textit{affine} (all non-Copy) types obey \textbf{move semantics}.
+\footcite{jung2017rustbelt}
 
 \begin{itemize}
     \item Move types are \mintinline{rust}{move}d on use and associated
@@ -1173,11 +1173,10 @@ describing \textit{protocols}.
 
 \begin{frame}
 \frametitle{Session Types}
-You can implement session types with:\footcite{pucella2008haskell}$^,$
-\footcite{jespersen2015session}
+You can implement session types with:\footcite{pucella2008haskell}
 
 \begin{itemize}
-    \item types and classes/traits (duality, sequencing)
+    \item types and type classes/traits (duality, sequencing)
     \item linear threading (linear types, indexed monads).
 \end{itemize}
 
@@ -1185,6 +1184,21 @@ You can implement session types with:\footcite{pucella2008haskell}$^,$
 
 \begin{center}
   \includegraphics[width=0.75\textwidth]{figs/session_types_need_substructural.pdf}
+\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Session Types}
+You can implement session types with:\footcite{jespersen2015session}
+
+\begin{itemize}
+    \item types and type classes/traits (duality, sequencing)
+    \item linear threading (linear types, indexed monads).
+\end{itemize}
+
+\begin{center}
+  \includegraphics[width=0.85\textwidth]{figs/session_types_rust.png}
 \end{center}
 
 \end{frame}
@@ -1197,7 +1211,7 @@ You can implement session types with:\footcite{pucella2008haskell}$^,$
 %format :+: = "\ :\mkern-2mu +\mkern-2mu: \  "
 %format :&: = "\ :\mkern-2mu \&\mkern-2mu: \  "
 
-Some of the basic building block types used in a 2008 Haskell paper:
+Some of the basic building block types used in th 2008 Haskell paper:
 \footcite{pucella2008haskell}
 
 > data a :!: r  -- send `a` then continue with `r`
