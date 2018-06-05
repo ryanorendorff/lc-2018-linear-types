@@ -1304,8 +1304,10 @@ Two |Int|s will be sent down the same channel, violating protocol.
 
 \pause 
 
-< p' :: Channel (Int :!: Eps) ->. (Int, Int)
-< p' c = h c c -- c has weight $\omega$, oops!
+%format p_L
+
+< p_L :: Channel (Int :!: Eps) ->. (Int, Int)
+< p_L c = h c c -- c has weight $\omega$, oops!
 
 %if False
 
