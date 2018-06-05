@@ -1263,8 +1263,8 @@ Some of the basic building block types used in a 2008 Haskell paper:
 > data a :!: r  -- send `a` then continue with `r`
 > data a :?: r  -- receive `a` then continue with `r`
 >
-> data a :+: r  -- Choose `r` or `s`
-> data a :&: r  -- Offer `r` or `s`
+> data r :+: s  -- Choose `r` or `s`
+> data r :&: s  -- Offer `r` or `s`
 >
 > data Eps      -- Protocol is depleted
 
