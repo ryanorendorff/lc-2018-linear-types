@@ -998,7 +998,8 @@ fn append_time(p: &Path, n: String) -> io::Result<()>
 \begin{frame}
 \frametitle{Rust and Substructural Types}
 Like Linear Haskell, the Rust type system supports both restricted types
-(affine) and unrestricted types.
+(affine \footnote{linear types partially supported with implicit
+\mintinline{rust}{drop}}) and unrestricted types.
 \begin{itemize}
     \item Linear Haskell provides flexible opt-in linearity \textit{on the
     function arrow}.
@@ -1006,6 +1007,8 @@ Like Linear Haskell, the Rust type system supports both restricted types
     also includes \textit{borrow} types.\footcite{clarke1998ownership}$^,$
     \footcite{reed2015patina}
 \end{itemize}
+
+%\footnotetext[*]{linear types partially supported with implicit \mintinline{rust}{drop}}
 \end{frame}
 
 \begin{frame}
