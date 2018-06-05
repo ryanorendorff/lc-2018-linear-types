@@ -1359,10 +1359,21 @@ Substructural types allow us to make stronger guarantees about
 \end{frame}
 
 
+\begin{frame}{Thank you for listening!}
+
+\begin{center}
+  \includegraphics[width=\textwidth]{figs/question.jpg}
+\end{center}
+
+\end{frame}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              Appendix                               %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix
+
+\begin{frame}{}
+\end{frame}
 
 
 \begin{frame}{Scanner resource example implementation}
