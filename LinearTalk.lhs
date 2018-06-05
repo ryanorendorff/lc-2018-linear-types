@@ -1259,7 +1259,7 @@ Two |Int|s will be sent down the same channel, violating protocol.
 \end{frame}
 
 
-\begin{frame}{We would like \emph{users} to control the POWER!}
+\begin{frame}{We would like \emph{users} to control the 30 kW scanner...}
 
 \begin{center}
   \includegraphics{figs/mpi.png}
@@ -1268,7 +1268,7 @@ Two |Int|s will be sent down the same channel, violating protocol.
 \end{frame}
 
 
-\begin{frame}{We would like \emph{users} to control the POWER!}
+\begin{frame}{We would like \emph{users} to control the 30 kW scanner...}
 
 \begin{center}
   \includegraphics{figs/mpi_john.png}
@@ -1277,7 +1277,7 @@ Two |Int|s will be sent down the same channel, violating protocol.
 \end{frame}
 
 
-\begin{frame}{Safe, \emph{user programmable} scanner use}
+\begin{frame}{Safe, \emph{user programmable} scanner \textsc{api}}
 
 %format SIL.IO = SIR.RIO
 %format SIL.return = SIR.return
