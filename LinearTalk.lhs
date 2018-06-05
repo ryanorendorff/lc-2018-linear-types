@@ -1259,7 +1259,7 @@ Two |Int|s will be sent down the same channel, violating protocol.
 \end{frame}
 
 
-\begin{frame}{We like big magnets with even more POWER!!!}
+\begin{frame}{We would like \emph{users} to control the POWER!}
 
 \begin{center}
   \includegraphics{figs/mpi.png}
@@ -1268,7 +1268,7 @@ Two |Int|s will be sent down the same channel, violating protocol.
 \end{frame}
 
 
-\begin{frame}{We like big magnets with even more POWER!!!}
+\begin{frame}{We would like \emph{users} to control the POWER!}
 
 \begin{center}
   \includegraphics{figs/mpi_john.png}
