@@ -1255,13 +1255,13 @@ You can implement session types with:\footcite{pucella2008haskell}$^,$
 Some of the basic building block types used in a 2008 Haskell paper:
 \footcite{pucella2008haskell}
 
-> data a :!: r -- send `a` then continue with `r`
-> data a :?: r -- receive `a` then continue with `r`
-
-> data a :+: r -- Choose `r` or `s`
-> data a :&: r -- Offer `r` or `s`
-
-> data Eps     -- Protocol is depleted
+> data a :!: r  -- send `a` then continue with `r`
+> data a :?: r  -- receive `a` then continue with `r`
+>
+> data a :+: r  -- Choose `r` or `s`
+> data a :&: r  -- Offer `r` or `s`
+>
+> data Eps      -- Protocol is depleted
 
 %if False
 
@@ -1272,9 +1272,11 @@ Some of the basic building block types used in a 2008 Haskell paper:
 
 \end{frame}
 
-\begin{frame}{Session types could benefit from some linearity}
+
+\begin{frame}{Session Types}
 
 %format s_dual = "\overline{\Varid{" s "}} "
+
 Communicating channels can be implemented as dual session types:
 
 > s :: Int :!: Bool :?: Eps -- Channel 1
@@ -1282,8 +1284,7 @@ Communicating channels can be implemented as dual session types:
 
 \end{frame}
 
-\begin{frame}
-\frametitle{Session Types}
+\begin{frame}{Session types could benefit from some linearity}
 
 Why session types require linearity:
 
