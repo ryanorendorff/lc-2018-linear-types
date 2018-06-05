@@ -122,7 +122,7 @@ To the reader of this source
 \author{Ryan~Orendorff, Daniel~Hensley}
 \title{Practical Introduction to Substructural Type Systems through
        Linear Haskell and Rust}
-\subtitle{\verb|github.com/ryanorendorff/???????|}
+\subtitle{\verb|github.com/ryanorendorff/lc-2018-linear-types|}
 \date{June 5th, 2018}
 \hypersetup{pdflang={English}}
 
@@ -359,14 +359,14 @@ We can check that |x| or |y| are |Int|s in either order.
 \pause
 
 Restricting this property means that we have to type check terms \emph{in
-the opposite order they were introduced} (a \textsc{filo} order).
+a stack order} (a \textsc{filo} order).
 
 \end{frame}
 
 
 \begin{frame}{Contraction: we can make duplicates of type proofs}
 
-The contraction rule lets us use a proof of a variable's type twice.
+The contraction rule lets us use a variable twice in a type safe way.
 
 % \begin{equation*}
 %   Γ, x:A, x:A ⊢  t:T \text{, then } Γ, x:A ⊢  t:T
@@ -429,7 +429,7 @@ Let's look at the most useful substructural systems.
 You can use a variable as many times as you like, including zero.
 \cite{WalkerChapter:2005}
 
-This is the type system for Haskell, Java, C, etc.
+This is the type system for Haskell, etc.
 
 \begin{center}
   \includegraphics[width=\textwidth]{figs/unrestricted.pdf}
@@ -589,7 +589,8 @@ To consume a variable exactly once, we use the following rules
         once.
         \begin{itemize}[<+->]
           \item This is a bit tricky. It means, for |(f :: A ->. B)|, if |f x| 
-                is used exactly once, \emph{then} |x| is used exactly once.
+                is consumed exactly once, \emph{then} |x| is consumed exactly
+                once.
         \end{itemize}
   \item For any algebraic data type, pattern match and consume all components
         exactly once.
@@ -807,8 +808,6 @@ We can now take a crack at our file example again.
 %if False
 
 >     where
->         -- The builder here is only for using @RebindableSyntax@ in this
->         -- monad.
 >         SIR.Builder {..} = SIR.builder
 
 %endif
@@ -820,7 +819,7 @@ We can now take a crack at our file example again.
 
 If we forget to close the file, the compiler tells us about this error.
 
-%format appendTimeToFile_L' = "\Varid{appendTimeToFile}_{L, \frownie} "
+%format appendTimeToFile_L' = "\Varid{appendTimeToFile}_{\frownie} "
 
 %{
 
@@ -847,8 +846,6 @@ If we forget to close the file, the compiler tells us about this error.
 %if False
 
 <     where
-<         -- The builder here is only for using @RebindableSyntax@ in this
-<         -- monad.
 <         SIR.Builder {..} = SIR.builder
 
 %endif
@@ -1295,6 +1292,7 @@ Two |Int|s will be sent down the same channel, violating protocol.
 
 %format SIL.IO = SIR.RIO
 %format SIL.return = SIR.return
+%format SIL.withLinearIO = "\Varid{withLinearIO} "
 
 > -- Definition of scanner
 > data State = Setup | Scanning
@@ -1330,24 +1328,6 @@ Two |Int|s will be sent down the same channel, violating protocol.
 > getData       = error "getData not defined"
 > scannerOff    = error "scannerOff not defined"
 
-> userDefinedScan :: [Parameters] -> IO ()
-> userDefinedScan ps = SIL.withLinearIO $ do
->     s <- scanner
->     s <- setParameters s ps
->     s <- verifyAndStart s
->     (s, PL.Unrestricted raw_data) <- getData s
->     scannerOff s
->     SIL.return (PL.Unrestricted ())
-
-%if False
-
->     where
->         -- The builder here is only for using @RebindableSyntax@ in this
->         -- monad.
->         SIL.Builder {..} = SIL.builder
-
-%endif
-
 %endif
 
 \end{frame}
@@ -1378,6 +1358,72 @@ Substructural types allow us to make stronger guarantees about
 
 \end{frame}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              Appendix                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+
+
+\begin{frame}{Scanner resource example implementation}
+
+For the scanner, we can write a program that allows users to take a scan.
+
+%{
+
+%format do = "\mathrm{\mathbf{do}}_{L} "
+
+%% This format is so that the syntax highlinting in my editor stays nice.
+
+%format `dollar` = $
+
+> userDefinedScan :: [Parameters] -> IO ()
+> userDefinedScan ps = SIL.withLinearIO $ do
+>     s <- scanner
+>     s <- setParameters s ps
+>     s <- verifyAndStart s
+>     (s, PL.Unrestricted rawData) <- getData s
+>     scannerOff s
+>     SIL.return (PL.Unrestricted ())
+
+%if False
+
+>     where
+>         SIL.Builder {..} = SIL.builder
+
+%endif
+
+\end{frame}
+
+
+\begin{frame}{Scanner resource example forgets to verify}
+
+If we try to write new parameters, these is an error in using the pre-scan
+state more than once.
+
+%format s_p
+%format userDefinedScan' = "\Varid{userDefinedScan}_{\frownie} "
+
+< userDefinedScan' :: [Parameters] -> IO ()
+< userDefinedScan' ps = SIL.withLinearIO `dollar` do
+<     s <- scanner
+<     s_p <- setParameters s ps
+<     s <- verifyAndStart s_p
+<     (s, PL.Unrestricted rawData) <- getData s
+<     s <- setParameters s_p ps
+<     scannerOff s
+<     SIL.return (PL.Unrestricted ())
+
+%if False
+
+<     where
+<         SIL.Builder {..} = SIL.builder
+
+%endif
+
+%}
+
+\end{frame}
 
 %if False
 
@@ -1460,8 +1506,6 @@ type checker, which matches section 2.6.
 >     SIR.hClose f1
 >     SIR.return line
 >     where
->         -- The builder here is only for using @RebindableSyntax@ in this
->         -- monad.
 >         SIR.Builder {..} = SIR.builder
 
 

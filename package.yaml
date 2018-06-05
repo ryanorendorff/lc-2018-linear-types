@@ -1,6 +1,6 @@
 name:                linear-talk
 version:             0.1.0.0
-github:              "githubuser/??????"
+github:              "githubuser/lc-2018-linear-types"
 license:             BSD3
 author:              "Ryan Orendorff, Daniel Hensley"
 maintainer:          "ryan@orendorff.io"
@@ -9,14 +9,7 @@ copyright:           "2018 Ryan Orendorff and Daniel Hensley"
 extra-source-files:
 - README.md
 
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
-
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/???>
+description:         Please see the README on GitHub at <https://github.com/githubuser/lc-2018-linear-types>
 
 dependencies:
 - base >= 4.7 && < 5
